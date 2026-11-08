@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar, kind_chip, temp_badge %}
+{% block title %}Воронка сделок{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Воронка сделок</h1><p>Перетаскивайте карточки между этапами</p></div>
+  {% if can_edit %}<div class="actions"><a class="btn ghost" href="{{ url_for('client_new') }}">{{ icon('user-plus') }} Новый клиент</a>
+    <a class="btn" href="{{ url_for('deal_new', kind=kind or 'selection') }}">{{ icon('plus') }} Сделка</a></div>{% endif %}
+</div>
+<div class="toolbar">
+  <div class="tabs">
+    <a href="{{ url_for('deals', mine=mine) }}" class="{{ 'on' if not kind }}">Все</a>
+    {% for code, k in DEAL_KINDS.items() %}<a href="{{ url_for('deals', kind=code, mine=mine) }}" class="{{ 'on' if kind == code }}">{{ k[1] }} {{ k[0].replace('Заказ авто из ', '').replace(' автомобиля', '').replace(' авто', '') }}</a>{% endfor %}
+  </div>
+  <div class="grow"></div>
+  <a class="btn ghost sm" href="{{ url_for('deals', kind=kind, mine=None if mine else 1) }}">{{ icon('user', 16) }} {{ 'Все менеджеры' if mine else 'Только мои' }}</a>
+</div>
+
+{% set colors = {'new':'#2F6DB5','consult':'#0891B2','calc':'#7C3AED','contract':'#D97706','work':'#EA580C','deal':'#16A34A','won':'#15803D','lost':'#8792A2'} %}
+<div class="kanban" {% if can_edit %}data-api="{{ url_for('deal_stage', did=0) }}"{% endif %}>
+  {% for code, name in stages %}
+  <div class="kcol" data-stage="{{ code }}" style="--c: {{ colors[code] }}">
+    <div class="kcol-h"><b>{{ name }} <em>{{ cols[code]|length }}</em></b><small>{{ sums[code]|money }}</small></div>
+    <div class="kcol-b">
+      {% for d in cols[code] %}
+      <a class="kcard" href="{{ url_for('deal_edit', did=d.id) }}" draggable="{{ 'true' if can_edit else 'false' }}" data-id="{{ d.id }}" data-budget="{{ d.budget or 0 }}">
+        {{ kind_chip(d.kind) }}
+        <div class="kt">{{ d.client }}</div>
+        <div class="ks">{{ d.car_wish or (d.brand ~ ' ' ~ (d.model or '') if d.brand else d.title) }}</div>
+        <div class="kf"><b>{{ d.budget|money if d.budget else '—' }}</b>
+          <span style="display:flex;gap:6px;align-items:center">{% if d.deadline %}<small class="{{ 'red' if d.deadline < today_iso }}">⏱ {{ d.deadline|dt('short') }}</small>{% endif %}{{ avatar(d.manager, 'sm') if d.manager }}</span></div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<p class="muted">В колонках «Успешно» и «Отказ» показаны сделки за последние 30 дней.</p>
+{% endblock %}

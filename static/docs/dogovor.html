@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Договор-заявка на оказание услуг — АвтоБрокер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   ДОГОВОР-ЗАЯВКА НА ОКАЗАНИЕ УСЛУГ — АвтоБрокер
+   A4, заполняемая форма, стиль «Графит»
+   ========================================================= */
+:root {
+    --ink: #16191e;
+    --steel: #5c636e;
+    --line: #b9bec6;
+    --line-soft: #dcdfe3;
+    --mist: #f1f2f4;
+    --signal: #c8102e;
+    --fill: #0b2a6f;
+    --font: 'Onest', 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: #e7e9ec; }
+body { font-family: var(--font); color: var(--ink); font-size: 8.6pt; line-height: 1.3; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.sheet {
+    width: 210mm; height: 297mm; overflow: hidden;
+    margin: 10mm auto; padding: 9mm 11mm 8mm;
+    background: #fff; box-shadow: 0 6px 30px rgba(22,25,30,.15);
+    display: flex; flex-direction: column;
+}
+@page { size: A4; margin: 0; }
+@media print {
+    html { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; break-after: page; }
+    .sheet:last-child { break-after: auto; }
+    .toolbar, .no-print { display: none !important; }
+    input[type=text]:focus, textarea:focus { background: transparent !important; }
+    ::placeholder { color: transparent !important; }
+    .sheet.skip-print { display: none; }
+}
+
+/* ---------- Панель ---------- */
+.toolbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 16px; background: var(--ink); color: #c4c9d1; font: 500 14px var(--font);
+}
+.toolbar .tb-title { color: #fff; font-weight: 700; margin-right: 6px; }
+.toolbar .tb-status { flex: 1; font-size: 13px; color: #9aa1aa; min-width: 160px; }
+.toolbar button { font: 600 14px var(--font); background: var(--signal); color: #fff; border: 0; padding: 9px 16px; border-radius: 6px; cursor: pointer; }
+.toolbar button:hover { background: #a00d25; }
+.toolbar button.ghost { background: transparent; border: 1px solid #3b424c; }
+.toolbar button.ghost:hover { border-color: #fff; background: rgba(255,255,255,.06); }
+.toolbar label.tgl { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; margin-right: 4px; }
+
+/* ---------- Шапка ---------- */
+.head { display: flex; align-items: center; justify-content: space-between; gap: 6mm; padding-bottom: 3.5mm; border-bottom: .6mm solid var(--ink); margin-bottom: 3.5mm; }
+.brand { display: flex; align-items: center; gap: 2.6mm; }
+.mark { width: 11mm; height: 11mm; border-radius: 2mm; background: var(--signal); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17pt; position: relative; }
+.mark::after { content: ''; position: absolute; left: 2.2mm; right: 2.2mm; bottom: 1.7mm; height: .45mm; border-radius: 1mm; background: rgba(255,255,255,.6); }
+.brand b { display: block; font-size: 12pt; font-weight: 800; letter-spacing: .02em; line-height: 1; }
+.brand span { display: block; font-size: 7.4pt; color: var(--steel); margin-top: .8mm; }
+.title { text-align: right; }
+.title h1 { font-size: 14pt; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+.title .sub { font-size: 8pt; color: var(--steel); margin-top: 1mm; }
+
+.meta-bar { display: flex; gap: 6mm; align-items: center; background: var(--mist); border-radius: 1.6mm; padding: 2mm 3mm; margin-bottom: 3mm; font-size: 8pt; }
+.meta-bar .f label { color: var(--steel); }
+.meta-bar .grow { flex: 1; }
+
+.preamble { font-size: 8pt; color: #2b3038; margin-bottom: 3mm; text-align: justify; }
+.preamble b { font-weight: 600; }
+
+/* ---------- Секции ---------- */
+.sec { margin-bottom: 3mm; }
+.sec-h { display: flex; align-items: center; gap: 2mm; font-size: 9.6pt; font-weight: 700; padding-bottom: 1.2mm; margin-bottom: 2mm; border-bottom: .25mm solid var(--line); }
+.sec-h .n { width: 5mm; height: 5mm; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 7.6pt; font-weight: 700; flex-shrink: 0; }
+.sec-h small { margin-left: auto; font-size: 7pt; font-weight: 400; color: var(--steel); }
+
+/* ---------- Поля ---------- */
+.fields { display: grid; gap: 2mm 4mm; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g21 { grid-template-columns: 2fr 1fr; }
+.g211 { grid-template-columns: 2fr 1fr 1fr; }
+.span2 { grid-column: span 2; }
+.span-all { grid-column: 1 / -1; }
+.f { display: flex; align-items: flex-end; gap: 1.6mm; min-width: 0; }
+.f label { font-size: 7.4pt; color: var(--steel); white-space: nowrap; }
+input[type=text], textarea {
+    font: 500 8.6pt var(--font); color: var(--fill); background: transparent;
+    border: 0; outline: none; min-width: 0;
+}
+.f input[type=text] { flex: 1; border-bottom: .25mm solid var(--line); height: 5mm; padding: 0 .6mm; }
+.f input.r { text-align: right; }
+textarea { width: 100%; resize: none; line-height: 5mm; padding: 0 .6mm; height: 10mm; display: block;
+    background-image: repeating-linear-gradient(transparent 0 calc(5mm - .25mm), var(--line) calc(5mm - .25mm) 5mm); }
+input[type=text]:focus, textarea:focus { background-color: #fff6d6; }
+
+/* Чекбоксы */
+input.cb {
+    appearance: none; -webkit-appearance: none; flex-shrink: 0;
+    width: 3.4mm; height: 3.4mm; border: .25mm solid #7d848e; border-radius: .7mm; background: #fff;
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; vertical-align: -.6mm; margin: 0;
+}
+input.cb:checked { background: var(--ink); border-color: var(--ink); }
+input.cb:checked::after { content: ''; width: 1.6mm; height: .85mm; border: solid #fff; border-width: 0 0 .45mm .45mm; transform: translateY(-.25mm) rotate(-45deg); }
+
+/* Услуги */
+.services { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 4mm; }
+.svc { display: flex; gap: 2mm; align-items: flex-start; padding: 1.8mm 2.2mm; border: .25mm solid var(--line-soft); border-radius: 1.4mm; cursor: pointer; }
+.svc:has(input:checked) { border-color: var(--ink); background: #f7f8f9; }
+.svc b { display: block; font-size: 8.4pt; font-weight: 600; }
+.svc span { display: block; font-size: 7.2pt; color: var(--steel); margin-top: .4mm; line-height: 1.3; }
+.svc .f { margin-top: .8mm; }
+
+/* Стоимость */
+.price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+table.price { width: 100%; border-collapse: collapse; }
+table.price td { border-bottom: .2mm solid var(--line-soft); height: 5.6mm; font-size: 8.2pt; }
+table.price td:first-child { color: var(--steel); font-size: 7.6pt; width: 52%; }
+table.price td input { width: 100%; height: 5mm; text-align: right; padding-right: 1mm; }
+table.price td.rub { width: 4mm; color: var(--steel); }
+table.price tr.total td { border-bottom: .35mm solid var(--ink); font-weight: 700; color: var(--ink); font-size: 8.6pt; }
+table.price tr.total td:first-child { color: var(--ink); font-size: 8.2pt; }
+table.price .calc { text-align: right; padding-right: 1mm; color: var(--fill); font-weight: 700; }
+.words { font-size: 7.6pt; color: var(--steel); margin-top: 1.4mm; }
+.words b { color: var(--fill); font-weight: 500; }
+.paywith { display: flex; flex-wrap: wrap; gap: 1.4mm 2.8mm; margin-top: 1.4mm; font-size: 8pt; }
+.paywith span, .opt { display: inline-flex; align-items: center; gap: 1.2mm; cursor: pointer; white-space: nowrap; }
+
+/* ---------- Условия ---------- */
+.terms { column-count: 2; column-gap: 6mm; font-size: 7.15pt; line-height: 1.36; color: #23272e; text-align: justify; hyphens: auto; }
+.terms h3 { font-size: 7.8pt; font-weight: 700; color: var(--ink); margin: 1.6mm 0 .6mm; break-after: avoid; text-align: left; }
+.terms h3:first-child { margin-top: 0; }
+.terms h3 i { font-style: normal; color: var(--signal); margin-right: 1mm; }
+.terms p { margin-bottom: .7mm; }
+.terms p span.pn { font-weight: 600; color: var(--ink); }
+
+/* ---------- Подписи и реквизиты ---------- */
+.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 2mm; }
+.party { border: .25mm solid var(--line); border-radius: 1.6mm; padding: 3mm 3.4mm; display: flex; flex-direction: column; }
+.party h4 { font-size: 8.4pt; font-weight: 700; letter-spacing: .02em; margin-bottom: 1.6mm; display: flex; justify-content: space-between; }
+.party h4 small { font-weight: 400; color: var(--steel); letter-spacing: 0; }
+.req { font-size: 7.7pt; line-height: 1.5; }
+.req .k { color: var(--steel); }
+.req b { font-weight: 600; }
+.party .fields { gap: 1.6mm; }
+.party .f label { min-width: 15mm; }
+.sig { margin-top: auto; padding-top: 5mm; display: grid; grid-template-columns: 1fr auto; gap: 2mm; align-items: end; font-size: 7.8pt; }
+.sig .line { border-bottom: .25mm solid var(--ink); height: 7mm; position: relative; }
+.sig .line::after { content: 'подпись'; position: absolute; left: 0; top: 100%; font-size: 6.4pt; color: var(--steel); margin-top: .5mm; }
+.sig .name { white-space: nowrap; }
+.mp { font-size: 6.8pt; color: var(--steel); margin-top: 4mm; }
+
+.consents { margin-top: 3mm; display: grid; gap: 1.6mm; font-size: 7.8pt; }
+.consents label { display: flex; gap: 2mm; align-items: flex-start; cursor: pointer; }
+
+/* ---------- Подвал ---------- */
+.foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 2mm; border-top: .25mm solid var(--line); font-size: 7pt; color: var(--steel); }
+.foot b { color: var(--ink); font-weight: 600; }
+.foot .road { flex: 1; height: .6mm; margin: 0 4mm; background: repeating-linear-gradient(90deg, var(--signal) 0 5mm, transparent 5mm 8mm); opacity: .85; }
+.mirror { color: var(--fill); font-weight: 600; }
+
+/* Акт */
+table.act { width: 100%; border-collapse: collapse; margin-top: 1mm; }
+table.act th { font-size: 7pt; font-weight: 600; color: var(--steel); text-align: left; padding: 0 1mm 1mm 0; border-bottom: .25mm solid var(--line); }
+table.act td { border-bottom: .2mm solid var(--line-soft); height: 6mm; font-size: 8.2pt; padding-right: 1mm; }
+table.act td.n { width: 6mm; color: var(--steel); }
+table.act td.s { width: 32mm; text-align: right; }
+table.act td input { width: 100%; height: 5.4mm; }
+table.act td.s input { text-align: right; }
+table.act tr.total td { border-bottom: .35mm solid var(--ink); font-weight: 700; }
+.act-text { font-size: 8pt; text-align: justify; margin: 2mm 0; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <span class="tb-title">Договор-заявка · АвтоБрокер</span>
+    <span class="tb-status" id="status">Черновик сохраняется автоматически</span>
+    <label class="tgl"><input type="checkbox" id="printAct" checked> печатать акт</label>
+    <button type="button" class="ghost" id="btnNew">Новый договор</button>
+    <button type="button" class="ghost" id="btnOpen">Открыть…</button>
+    <button type="button" class="ghost" id="btnSave">Сохранить…</button>
+    <button type="button" id="btnPrint">Печать / PDF</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+</div>
+
+<!-- ============================ ЛИСТ 1 ============================ -->
+<section class="sheet">
+    <header class="head">
+        <div class="brand">
+            <div class="mark">А</div>
+            <div><b>АВТОБРОКЕР</b><span>Подбор и привоз авто в Иркутске</span></div>
+        </div>
+        <div class="title">
+            <h1>Договор-заявка на оказание услуг</h1>
+            <div class="sub">по подбору и проверке автомобиля · для физических лиц</div>
+        </div>
+    </header>
+
+    <div class="meta-bar">
+        <div class="f"><label>Договор №</label><input type="text" id="docNo" style="width:22mm"></div>
+        <div class="f"><label>от</label><input type="text" id="docDate" style="width:26mm"></div>
+        <div class="f grow"><label>Место заключения</label><input type="text" id="docCity" value="г. Иркутск"></div>
+    </div>
+
+    <p class="preamble">
+        <b>Индивидуальный предприниматель Пуховский Илья Дмитриевич</b> (ОГРНИП 326385000058512, ИНН 381207844700), именуемый в дальнейшем «Исполнитель», с одной стороны, и гражданин(ка), указанный(ая) в разделе 1, именуемый(ая) в дальнейшем «Заказчик», с другой стороны, заключили настоящий Договор-заявку (далее — «Договор») о нижеследующем. Условия оказания услуг приведены в разделе 6 и являются неотъемлемой частью Договора.
+    </p>
+
+    <!-- 1. Заказчик -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">1</span>Заказчик</div>
+        <div class="fields g21">
+            <div class="f"><label>Фамилия, имя, отчество</label><input type="text" id="cName"></div>
+            <div class="f"><label>Дата рождения</label><input type="text"></div>
+            <div class="f"><label>Паспорт: серия, номер</label><input type="text" id="cPass"></div>
+            <div class="f"><label>Дата выдачи</label><input type="text"></div>
+            <div class="f span-all"><label>Кем выдан</label><input type="text"></div>
+            <div class="f span-all"><label>Адрес регистрации</label><input type="text"></div>
+            <div class="f"><label>Телефон</label><input type="text" id="cPhone"></div>
+            <div class="f"><label>E-mail / мессенджер</label><input type="text" id="cMail"></div>
+        </div>
+    </div>
+
+    <!-- 2. Услуга -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">2</span>Услуга<small>отметьте одну или несколько</small></div>
+        <div class="services">
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Подбор автомобиля под ключ"><div><b>Подбор автомобиля под ключ</b><span>Поиск вариантов, осмотры, проверка по базам, торг и сопровождение сделки до подписания договора купли-продажи</span><div class="f"><label>Осмотров включено, не более</label><input type="text" class="r" style="max-width:12mm"></div></div></label>
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Разовый осмотр автомобиля"><div><b>Разовый осмотр автомобиля</b><span>Выездной осмотр одного автомобиля: кузов и ЛКП, техника, компьютерная диагностика, тест-драйв, проверка по базам, Акт осмотра</span></div></label>
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Эксперт на день"><div><b>Эксперт на день</b><span>Специалист в распоряжении Заказчика до 8 часов в один день для осмотра нескольких автомобилей</span></div></label>
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Проверка истории автомобиля"><div><b>Проверка истории автомобиля</b><span>ГИБДД, реестр залогов ФНП, ФССП, история пробегов, ДТП, такси и лизинг; письменный отчёт</span></div></label>
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Сопровождение сделки"><div><b>Сопровождение сделки</b><span>Проверка документов, подготовка договора купли-продажи, присутствие при подписании и расчётах</span></div></label>
+            <label class="svc"><input type="checkbox" class="cb" data-svc="Иная услуга"><div style="flex:1"><b>Иная услуга</b><div class="f"><input type="text" id="svcOther" placeholder="опишите услугу"></div></div></label>
+        </div>
+    </div>
+
+    <!-- 3. Автомобиль -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">3</span>Автомобиль</div>
+        <div class="fields g211">
+            <div class="f"><label>Марка, модель</label><input type="text" id="carModel"></div>
+            <div class="f"><label>Год от–до</label><input type="text"></div>
+            <div class="f"><label>Бюджет, ₽</label><input type="text"></div>
+            <div class="f span-all"><label>VIN или ссылка на объявление</label><input type="text" id="carLink"></div>
+            <div class="span-all"><div class="f" style="margin-bottom:0"><label>Требования Заказчика (для подбора): кузов, КПП, привод, цвет, пробег, опции</label></div><textarea rows="2"></textarea></div>
+        </div>
+    </div>
+
+    <!-- 4. Город и сроки -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">4</span>Место и сроки оказания услуги</div>
+        <div class="fields g3">
+            <div class="f"><label>Город (регион)</label><input type="text" value="г. Иркутск"></div>
+            <div class="f"><label>Срок оказания до</label><input type="text"></div>
+            <div class="f"><label>Диагностика на подъёмнике</label>
+                <span class="opt"><input type="checkbox" class="cb" data-one="lift"> Да</span>
+                <span class="opt"><input type="checkbox" class="cb" data-one="lift"> Нет</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Стоимость -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">5</span>Стоимость и порядок оплаты</div>
+        <div class="price-grid">
+            <table class="price">
+                <tr><td>Стоимость основной услуги</td><td><input type="text" class="money" id="pBase"></td><td class="rub">₽</td></tr>
+                <tr><td>Дополнительные услуги, выезд за город</td><td><input type="text" class="money" id="pExtra"></td><td class="rub">₽</td></tr>
+                <tr class="total"><td>Общая стоимость</td><td class="calc" id="pTotal">—</td><td class="rub">₽</td></tr>
+            </table>
+            <table class="price">
+                <tr><td>Предоплата при подписании</td><td><input type="text" class="money" id="pPre"></td><td class="rub">₽</td></tr>
+                <tr><td>Остаток к оплате</td><td class="calc" id="pRest">—</td><td class="rub">₽</td></tr>
+                <tr><td>Выезд без осмотра (п. 6.3.4)</td><td><input type="text" class="money" id="pTrip"></td><td class="rub">₽</td></tr>
+            </table>
+        </div>
+        <div class="words">Общая стоимость прописью: <b id="pWords">—</b>. НДС не облагается.</div>
+        <div class="paywith">
+            <span style="color:var(--steel)">Остаток оплачивается:</span>
+            <span><input type="checkbox" class="cb" data-one="when"> после оказания услуги</span>
+            <span><input type="checkbox" class="cb" data-one="when"> при подписании ДКП</span>
+            <span style="color:var(--steel);margin-left:1mm">Способ:</span>
+            <span><input type="checkbox" class="cb"> наличные</span>
+            <span><input type="checkbox" class="cb"> перевод на р/с</span>
+            <span><input type="checkbox" class="cb"> QR-код</span>
+        </div>
+    </div>
+
+    <div class="foot">
+        <span><b>Договор № <span class="mirror" data-src="docNo"></span></b> · Лист 1</span>
+        <span class="road"></span>
+        <span><b>автоброкер38.рф</b> · +7 904 111-14-81</span>
+    </div>
+</section>
+
+<!-- ============================ ЛИСТ 2 ============================ -->
+<section class="sheet">
+    <div class="sec" style="margin-bottom:2mm">
+        <div class="sec-h"><span class="n">6</span>Условия оказания услуг</div>
+        <div class="terms">
+            <h3><i>6.1</i>Предмет договора</h3>
+            <p><span class="pn">6.1.1.</span> Исполнитель обязуется по заданию Заказчика оказать консультационные услуги, отмеченные в разделе 2 (далее — «Услуга»), а Заказчик обязуется принять и оплатить Услугу.</p>
+            <p><span class="pn">6.1.2.</span> Исполнитель не является продавцом, собственником или представителем продавца автомобиля. Договор купли-продажи (ДКП) заключается Заказчиком с продавцом напрямую. Решение о покупке Заказчик принимает самостоятельно.</p>
+            <p><span class="pn">6.1.3.</span> Заказчик заказывает Услугу для личных, семейных и иных нужд, не связанных с предпринимательской деятельностью. К отношениям сторон применяется законодательство о защите прав потребителей.</p>
+
+            <h3><i>6.2</i>Содержание услуг</h3>
+            <p><span class="pn">6.2.1.</span> <b>Подбор под ключ</b> — поиск автомобилей по требованиям раздела 3, согласование кандидатов с Заказчиком, выездные осмотры (не более количества, указанного в разделе 2), проверка по базам, помощь в торге и сопровождение до подписания ДКП.</p>
+            <p><span class="pn">6.2.2.</span> <b>Разовый осмотр</b> — осмотр одного автомобиля: кузов и толщина ЛКП, силовые элементы, техническое состояние, компьютерная диагностика, тест-драйв (при согласии продавца), проверка по открытым базам. Результат оформляется Актом осмотра.</p>
+            <p><span class="pn">6.2.3.</span> <b>Эксперт на день</b> — работа специалиста до 8 часов в один день в пределах города, указанного в разделе 4. Время ожидания и переезды входят в эти 8 часов.</p>
+            <p><span class="pn">6.2.4.</span> Осмотр проводится без разборки узлов и агрегатов, визуально и с помощью диагностического оборудования Исполнителя. Диагностика на подъёмнике проводится, если это отмечено в разделе 4 и возможно по месту осмотра.</p>
+
+            <h3><i>6.3</i>Порядок оказания</h3>
+            <p><span class="pn">6.3.1.</span> Заказчик сообщает достоверные сведения об автомобиле и своих требованиях, а также своевременно согласовывает кандидатов и время осмотра.</p>
+            <p><span class="pn">6.3.2.</span> Исполнитель согласовывает с продавцом время и место осмотра и сообщает о них Заказчику. Заказчик вправе присутствовать на осмотре.</p>
+            <p><span class="pn">6.3.3.</span> Результаты осмотра (Акт осмотра, фото и видео) передаются Заказчику лично или в мессенджер не позднее 24 часов после осмотра. Устные рекомендации даются сразу по его окончании.</p>
+            <p><span class="pn">6.3.4.</span> Если по прибытии на место осмотр невозможен по вине продавца (отказ в осмотре, автомобиль не соответствует объявлению, отсутствуют документы), Заказчик оплачивает выезд в сумме, указанной в разделе 5.</p>
+            <p><span class="pn">6.3.5.</span> Переписка и обмен документами через мессенджеры и электронную почту по контактам из Договора имеют юридическую силу.</p>
+
+            <h3><i>6.4</i>Оплата</h3>
+            <p><span class="pn">6.4.1.</span> Стоимость Услуги указана в разделе 5 и не облагается НДС. Оплата вносится наличными с выдачей чека или безналичным переводом на расчётный счёт Исполнителя.</p>
+            <p><span class="pn">6.4.2.</span> Расходы на платные проверки, подъёмник в стороннем сервисе и выезды за пределы города оплачиваются только при согласовании с Заказчиком заранее.</p>
+
+            <h3><i>6.5</i>Сдача и приёмка</h3>
+            <p><span class="pn">6.5.1.</span> Оказание Услуги подтверждается Актом оказанных услуг. Если в течение 3 рабочих дней после получения Акта Заказчик не направил мотивированных возражений, Услуга считается принятой.</p>
+
+            <h3><i>6.6</i>Ответственность</h3>
+            <p><span class="pn">6.6.1.</span> Исполнитель отвечает за полноту и достоверность сведений, которые могли быть выявлены при осмотре в объёме п. 6.2.4.</p>
+            <p><span class="pn">6.6.2.</span> Исполнитель не отвечает за скрытые недостатки, которые невозможно выявить без разборки, недостатки, возникшие после осмотра, а также за достоверность сведений государственных и коммерческих баз и действия продавца.</p>
+            <p><span class="pn">6.6.3.</span> В остальном стороны несут ответственность в соответствии с законодательством Российской Федерации.</p>
+
+            <h3><i>6.7</i>Отказ от договора</h3>
+            <p><span class="pn">6.7.1.</span> Заказчик вправе отказаться от Договора в любое время, оплатив Исполнителю фактически понесённые расходы и стоимость уже оказанной части Услуги (ст. 782 ГК РФ, ст. 32 Закона «О защите прав потребителей»). Остаток предоплаты возвращается в течение 10 дней со дня получения заявления.</p>
+
+            <h3><i>6.8</i>Персональные данные и прочее</h3>
+            <p><span class="pn">6.8.1.</span> Персональные данные Заказчика обрабатываются Исполнителем только для исполнения Договора (п. 5 ч. 1 ст. 6 Федерального закона № 152-ФЗ «О персональных данных») и не передаются третьим лицам, кроме случаев, предусмотренных законом.</p>
+            <p><span class="pn">6.8.2.</span> Договор вступает в силу с момента подписания и действует до полного исполнения обязательств. Споры решаются переговорами, а при недостижении согласия — в суде в соответствии с законодательством РФ.</p>
+            <p><span class="pn">6.8.3.</span> Договор составлен в двух экземплярах, по одному для каждой стороны.</p>
+        </div>
+    </div>
+
+    <!-- 7. Подписи -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">7</span>Реквизиты и подписи сторон</div>
+        <div class="parties">
+            <div class="party">
+                <h4>ИСПОЛНИТЕЛЬ</h4>
+                <div class="req">
+                    <b>ИП Пуховский Илья Дмитриевич</b><br>
+                    <span class="k">ИНН</span> 381207844700 &nbsp; <span class="k">ОГРНИП</span> 326385000058512<br>
+                    <span class="k">Адрес:</span> 664056, Иркутская обл., г. Иркутск, мкр. Ершовский, д. 174, кв. 16<br>
+                    <span class="k">Банк:</span> Филиал «Новосибирский» АО «Альфа-Банк»<br>
+                    <span class="k">БИК</span> 045004774<br>
+                    <span class="k">Р/с</span> 40802810323580013259<br>
+                    <span class="k">К/с</span> 30101810600000000774<br>
+                    <span class="k">Тел.</span> +7 904 111-14-81 &nbsp; <span class="k">Сайт</span> автоброкер38.рф
+                </div>
+                <div class="sig"><div class="line"></div><span class="name">/ Пуховский И. Д. /</span></div>
+                <div class="mp">М.П. (при наличии)</div>
+            </div>
+            <div class="party">
+                <h4>ЗАКАЗЧИК</h4>
+                <div class="req">
+                    <span class="k">ФИО:</span> <span class="mirror" data-src="cName"></span><br>
+                    <span class="k">Паспорт:</span> <span class="mirror" data-src="cPass"></span><br>
+                    <span class="k">Телефон:</span> <span class="mirror" data-src="cPhone"></span><br>
+                    <span class="k">E-mail / мессенджер:</span> <span class="mirror" data-src="cMail"></span>
+                </div>
+                <div class="consents">
+                    <label><input type="checkbox" class="cb" checked> С условиями Договора ознакомлен(а) и согласен(на), экземпляр получил(а).</label>
+                    <label><input type="checkbox" class="cb"> Согласен(на) на получение результатов осмотра в мессенджер.</label>
+                </div>
+                <div class="sig"><div class="line"></div><span class="name">/ <span class="mirror" data-src="cShort"></span> /</span></div>
+                <div class="mp">Дата: <span class="mirror" data-src="docDate"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="foot">
+        <span><b>Договор № <span class="mirror" data-src="docNo"></span></b> · Лист 2</span>
+        <span class="road"></span>
+        <span><b>автоброкер38.рф</b> · +7 904 111-14-81</span>
+    </div>
+</section>
+
+<!-- ============================ ЛИСТ 3: АКТ ============================ -->
+<section class="sheet" id="actSheet">
+    <header class="head">
+        <div class="brand">
+            <div class="mark">А</div>
+            <div><b>АВТОБРОКЕР</b><span>Подбор и привоз авто в Иркутске</span></div>
+        </div>
+        <div class="title">
+            <h1>Акт оказанных услуг</h1>
+            <div class="sub">к Договору-заявке № <span class="mirror" data-src="docNo"></span> от <span class="mirror" data-src="docDate"></span></div>
+        </div>
+    </header>
+
+    <div class="meta-bar">
+        <div class="f"><label>Акт №</label><input type="text" id="actNo" style="width:22mm"></div>
+        <div class="f"><label>Дата акта</label><input type="text" id="actDate" style="width:26mm"></div>
+        <div class="f grow"><label>Место</label><input type="text" value="г. Иркутск"></div>
+    </div>
+
+    <p class="act-text">
+        Исполнитель — <b>ИП Пуховский Илья Дмитриевич</b> и Заказчик — <span class="mirror" data-src="cName"></span> составили настоящий Акт о том, что Исполнитель оказал, а Заказчик принял следующие услуги:
+    </p>
+
+    <table class="act" id="actTable">
+        <thead><tr><th>№</th><th>Наименование услуги</th><th style="text-align:right">Сумма, ₽</th></tr></thead>
+        <tbody>
+            <tr><td class="n">1</td><td><input type="text" class="actSvc"></td><td class="s"><input type="text" class="money actSum"></td></tr>
+            <tr><td class="n">2</td><td><input type="text" class="actSvc"></td><td class="s"><input type="text" class="money actSum"></td></tr>
+            <tr><td class="n">3</td><td><input type="text" class="actSvc"></td><td class="s"><input type="text" class="money actSum"></td></tr>
+            <tr><td class="n">4</td><td><input type="text" class="actSvc"></td><td class="s"><input type="text" class="money actSum"></td></tr>
+            <tr class="total"><td></td><td>Итого</td><td class="s calc" id="actTotal">—</td></tr>
+        </tbody>
+    </table>
+    <div class="words" style="margin-top:2mm">Итого прописью: <b id="actWords">—</b>. НДС не облагается.</div>
+
+    <div class="sec" style="margin-top:4mm">
+        <div class="sec-h" style="font-size:8.6pt">Автомобиль, по которому оказаны услуги</div>
+        <div class="fields g2">
+            <div class="f"><label>Марка, модель</label><input type="text" id="actCar"></div>
+            <div class="f"><label>VIN / госномер</label><input type="text"></div>
+            <div class="f"><label>Акт осмотра №</label><input type="text"></div>
+            <div class="f"><label>Осмотров проведено</label><input type="text"></div>
+        </div>
+    </div>
+
+    <p class="act-text">Услуги оказаны в полном объёме и в срок. Заказчик претензий по объёму, качеству и срокам оказания услуг не имеет. Оплата произведена в размере <input type="text" class="money" id="actPaid" style="width:26mm;border-bottom:.25mm solid var(--line);text-align:right"> ₽.</p>
+
+    <div class="sec">
+        <div class="sec-h" style="font-size:8.6pt">Замечания Заказчика</div>
+        <textarea rows="2" style="height:10mm"></textarea>
+    </div>
+
+    <div class="parties" style="margin-top:4mm">
+        <div class="party" style="border:0;padding:0">
+            <h4>ИСПОЛНИТЕЛЬ<small>ИП Пуховский И. Д.</small></h4>
+            <div class="sig"><div class="line"></div><span class="name">/ Пуховский И. Д. /</span></div>
+            <div class="mp">М.П. (при наличии)</div>
+        </div>
+        <div class="party" style="border:0;padding:0">
+            <h4>ЗАКАЗЧИК<small><span class="mirror" data-src="cShort"></span></small></h4>
+            <div class="sig"><div class="line"></div><span class="name">/ <span class="mirror" data-src="cShort"></span> /</span></div>
+            <div class="mp">Дата: <span class="mirror" data-src="actDate"></span></div>
+        </div>
+    </div>
+
+    <div class="foot">
+        <span><b>Акт к договору № <span class="mirror" data-src="docNo"></span></b> · Лист 3</span>
+        <span class="road"></span>
+        <span><b>автоброкер38.рф</b> · +7 904 111-14-81</span>
+    </div>
+</section>
+
+<script>
+(function () {
+    const KEY = 'dogovor-avtobroker-draft-v1';
+    const $ = id => document.getElementById(id);
+    const status = $('status');
+    const setStatus = t => { status.textContent = t; };
+    const fields = () => Array.from(document.querySelectorAll('.sheet input, .sheet textarea'));
+
+    /* ---------- Числа и сумма прописью ---------- */
+    const parseMoney = v => { const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+    const fmt = n => n.toLocaleString('ru-RU', {minimumFractionDigits: 0, maximumFractionDigits: 2}).replace(/ /g, ' ');
+
+    function words(num) {
+        num = Math.floor(num);
+        if (num === 0) return 'ноль рублей 00 копеек';
+        const units = [['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'],
+                       ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять']];
+        const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+        const tens = ['', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+        const hund = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+        const forms = [['рубль', 'рубля', 'рублей', 0], ['тысяча', 'тысячи', 'тысяч', 1], ['миллион', 'миллиона', 'миллионов', 0], ['миллиард', 'миллиарда', 'миллиардов', 0]];
+        const plural = (n, f) => { n %= 100; if (n > 10 && n < 20) return f[2]; n %= 10; return n === 1 ? f[0] : (n > 1 && n < 5 ? f[1] : f[2]); };
+        const out = [];
+        let i = 0, rubWord = 'рублей';
+        while (num > 0 || i === 0) {
+            const tri = num % 1000;
+            const f = forms[i];
+            if (tri > 0 || i === 0) {
+                const w = [];
+                w.push(hund[Math.floor(tri / 100)]);
+                const t = tri % 100;
+                if (t >= 10 && t < 20) w.push(teens[t - 10]);
+                else { w.push(tens[Math.floor(t / 10)]); w.push(units[f[3]][t % 10]); }
+                const word = plural(tri, f);
+                if (i === 0) rubWord = word; else if (tri > 0) w.push(word);
+                out.unshift(w.filter(Boolean).join(' '));
+            }
+            num = Math.floor(num / 1000); i++;
+            if (i >= forms.length) break;
+        }
+        const s = out.filter(Boolean).join(' ').trim();
+        return s.charAt(0).toUpperCase() + s.slice(1) + ' ' + rubWord + ' 00 копеек';
+    }
+
+    /* ---------- Расчёты и зеркала ---------- */
+    function shortName(full) {
+        const p = full.trim().split(/\s+/).filter(Boolean);
+        if (!p.length) return '';
+        return p[0] + (p[1] ? ' ' + p[1][0] + '.' : '') + (p[2] ? ' ' + p[2][0] + '.' : '');
+    }
+    function refresh() {
+        const base = parseMoney($('pBase').value), extra = parseMoney($('pExtra').value), pre = parseMoney($('pPre').value);
+        const total = base + extra;
+        $('pTotal').textContent = total ? fmt(total) : '—';
+        $('pRest').textContent = total ? fmt(Math.max(total - pre, 0)) : '—';
+        $('pWords').textContent = total ? words(total) : '—';
+
+        const sums = Array.from(document.querySelectorAll('.actSum')).map(i => parseMoney(i.value));
+        const actTotal = sums.reduce((a, b) => a + b, 0);
+        $('actTotal').textContent = actTotal ? fmt(actTotal) : '—';
+        $('actWords').textContent = actTotal ? words(actTotal) : '—';
+
+        const src = {
+            docNo: $('docNo').value || '____',
+            docDate: $('docDate').value || '__________',
+            actDate: $('actDate').value || '__________',
+            cName: $('cName').value || '______________________________',
+            cPass: $('cPass').value || '____________',
+            cPhone: $('cPhone').value || '____________',
+            cMail: $('cMail').value || '____________',
+            cShort: shortName($('cName').value) || '______________'
+        };
+        document.querySelectorAll('.mirror').forEach(m => { m.textContent = src[m.dataset.src]; });
+        document.getElementById('actSheet').classList.toggle('skip-print', !$('printAct').checked);
+    }
+
+    /* Форматирование денег при выходе из поля */
+    document.querySelectorAll('input.money').forEach(inp => {
+        inp.addEventListener('blur', () => { const n = parseMoney(inp.value); inp.value = inp.value.trim() ? fmt(n) : ''; refresh(); autosave(); });
+    });
+
+    /* Взаимоисключающие пары (подъёмник, когда оплачивать) */
+    document.querySelectorAll('[data-one]').forEach(cb => cb.addEventListener('change', () => {
+        if (cb.checked) document.querySelectorAll('[data-one="' + cb.dataset.one + '"]').forEach(o => { if (o !== cb) o.checked = false; });
+    }));
+
+    /* Клик по подписи ставит галочку */
+    document.querySelectorAll('.paywith span, .opt').forEach(sp => {
+        const cb = sp.querySelector('input.cb'); if (!cb) return;
+        sp.addEventListener('click', e => { if (e.target === cb) return; cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', {bubbles: true})); });
+    });
+
+    /* Автозаполнение акта из договора, пока поля акта пустые */
+    function fillActFromContract() {
+        const svcInputs = Array.from(document.querySelectorAll('.actSvc'));
+        if (svcInputs.some(i => i.value.trim())) return;
+        const chosen = Array.from(document.querySelectorAll('[data-svc]')).filter(c => c.checked)
+            .map(c => c.dataset.svc === 'Иная услуга' ? ($('svcOther').value || 'Иная услуга') : c.dataset.svc);
+        chosen.slice(0, 4).forEach((name, i) => { svcInputs[i].value = name; });
+        if (!$('actCar').value) $('actCar').value = $('carModel').value;
+        if (chosen.length === 1) {
+            const sumInp = document.querySelector('.actSum');
+            if (!sumInp.value && $('pTotal').textContent !== '—') sumInp.value = $('pTotal').textContent;
+        }
+    }
+
+    /* ---------- Сохранение ---------- */
+    function collect() {
+        return { version: 1, saved: new Date().toISOString(), printAct: $('printAct').checked,
+                 values: fields().map(el => el.type === 'checkbox' ? el.checked : el.value) };
+    }
+    function apply(data) {
+        const els = fields();
+        (data.values || []).forEach((v, i) => { const el = els[i]; if (!el) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v ?? ''; });
+        if ('printAct' in data) $('printAct').checked = data.printAct;
+        refresh();
+    }
+    let t;
+    function autosave() {
+        refresh();
+        clearTimeout(t);
+        t = setTimeout(() => {
+            try { localStorage.setItem(KEY, JSON.stringify(collect())); setStatus('Черновик сохранён ' + new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})); } catch (e) {}
+        }, 400);
+    }
+    document.addEventListener('input', autosave);
+    document.addEventListener('change', autosave);
+
+    /* Enter — к следующему полю */
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' || e.target.type !== 'text') return;
+        e.preventDefault();
+        const els = fields().filter(x => x.type === 'text');
+        const n = els[els.indexOf(e.target) + 1]; if (n) n.focus();
+    });
+
+    function fileName() {
+        const parts = ['Договор', $('docNo').value.trim() && '№' + $('docNo').value.trim(), shortName($('cName').value), $('docDate').value.trim()];
+        return (parts.filter(Boolean).join(' ').replace(/[\\/:*?"<>|]+/g, '-') || 'Договор') + '.json';
+    }
+    const isApp = () => window.pywebview && window.pywebview.api;
+
+    $('btnSave').addEventListener('click', async () => {
+        const json = JSON.stringify(collect(), null, 1);
+        if (isApp()) { const ok = await window.pywebview.api.save(json, fileName()); if (ok) setStatus('Договор сохранён: ' + ok); return; }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([json], {type: 'application/json'}));
+        a.download = fileName(); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        setStatus('Договор сохранён в «Загрузки»');
+    });
+    const fileIn = $('fileIn');
+    $('btnOpen').addEventListener('click', async () => {
+        if (isApp()) {
+            const txt = await window.pywebview.api.open();
+            if (txt) { try { apply(JSON.parse(txt)); autosave(); setStatus('Договор открыт'); } catch (e) { setStatus('Не удалось прочитать файл договора'); } }
+            return;
+        }
+        fileIn.click();
+    });
+    fileIn.addEventListener('change', () => {
+        const f = fileIn.files[0]; if (!f) return;
+        f.text().then(txt => { try { apply(JSON.parse(txt)); autosave(); setStatus('Договор открыт: ' + f.name); } catch (e) { setStatus('Не удалось прочитать файл договора'); } });
+        fileIn.value = '';
+    });
+
+    const today = () => new Date().toLocaleDateString('ru-RU');
+    function defaults() {
+        $('docDate').value = today();
+        $('actDate').value = today();
+        $('docCity').value = 'г. Иркутск';
+    }
+    $('btnNew').addEventListener('click', () => {
+        if (!confirm('Очистить форму и начать новый договор? Несохранённые данные пропадут.')) return;
+        fields().forEach(el => { if (el.type === 'checkbox') el.checked = el.defaultChecked; else el.value = el.defaultValue; });
+        defaults(); autosave(); setStatus('Новый договор');
+    });
+    $('btnPrint').addEventListener('click', () => { fillActFromContract(); refresh(); window.print(); });
+    $('printAct').addEventListener('change', refresh);
+
+    let restored = false;
+    try { const d = localStorage.getItem(KEY); if (d) { apply(JSON.parse(d)); restored = true; setStatus('Восстановлен последний черновик'); } } catch (e) {}
+    if (!restored) defaults();
+    refresh();
+})();
+</script>
+</body>
+</html>

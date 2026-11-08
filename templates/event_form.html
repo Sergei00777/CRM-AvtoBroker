@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новое событие' if is_new else 'Событие' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новое событие' if is_new else e.title }}</h1><p>Встреча, осмотр, выдача или приёмка авто — появится в календаре</p></div></div>
+<form method="post" class="card form" style="max-width:820px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec">
+    <div class="seg" style="margin-bottom:16px">{% for k in kinds %}<label><input type="radio" name="kind" value="{{ k }}" {{ 'checked' if e.kind == k }}><span>{{ k }}</span></label>{% endfor %}</div>
+    <div class="fgrid">
+      <div class="f w12"><label>Название <span class="req">*</span></label><input type="text" name="title" required value="{{ e.title or '' }}" {{ 'autofocus' if is_new }}></div>
+      <div class="f w3"><label>Дата</label><input type="date" name="date" required value="{{ e.date or '' }}"></div>
+      <div class="f w3"><label>Время</label><input type="time" name="time" value="{{ e.time or '' }}"></div>
+      <div class="f w6"><label>Клиент</label>{{ select('client_id', clients, e.client_id, '— без клиента —', 'full_name') }}</div>
+      <div class="f w6"><label>Сотрудник</label>{{ select('user_id', users, e.user_id, '—', 'full_name') }}</div>
+      <div class="f w12"><label>Заметки</label><textarea name="notes" placeholder="Адрес, что взять с собой">{{ e.notes or '' }}</textarea></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} Сохранить</button>
+    <a class="btn ghost" href="{{ url_for('calendar_view') }}">Отмена</a>
+    <span class="grow"></span>
+    {% if not is_new %}<button class="btn danger sm" name="delete" value="1" formnovalidate onclick="return confirm('Удалить событие?')">{{ icon('trash', 16) }} Удалить</button>{% endif %}
+  </div>
+</form>
+{% endblock %}

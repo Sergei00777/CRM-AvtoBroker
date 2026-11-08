@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar %}
+{% block title %}{{ 'Новый сотрудник' if not uid else u.full_name }}{% endblock %}
+{% block scripts %}<script>
+function previewPhoto(inp) { const f = inp.files[0]; if (!f) return;
+  document.getElementById('phPrev').innerHTML = '<img class="avatar xl" src="' + URL.createObjectURL(f) + '">'; }
+</script>{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новый сотрудник' if not uid else u.full_name }}</h1><p>{{ 'Придумайте логин и пароль — после сохранения их можно будет скопировать и отправить сотруднику' if not uid else 'Оставьте пароль пустым, чтобы не менять его' }}</p></div></div>
+<form method="post" class="card form" style="max-width:820px" autocomplete="off" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec">
+    <div class="fgrid">
+      <div class="f w12"><label>Фото</label>
+        <div class="photo-pick">
+          <span id="phPrev">{{ avatar(u.full_name or '?', 'xl', user_photo(uid) if uid else None) }}</span>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label class="btn ghost sm" style="width:max-content">{{ icon('camera', 16) }} Выбрать фото<input type="file" name="photo" accept="image/*" hidden onchange="previewPhoto(this)"></label>
+            {% if uid and user_photo(uid) %}<label class="check"><input type="checkbox" name="remove_photo" value="1"> Удалить фото</label>{% endif %}
+            <span class="hint">JPG или PNG, лучше квадратное. Фото видно в чате, задачах и сделках</span>
+          </div>
+        </div></div>
+      <div class="f w6"><label>ФИО <span class="req">*</span></label><input type="text" name="full_name" required value="{{ u.full_name or '' }}"></div>
+      <div class="f w6"><label>Логин <span class="req">*</span></label><input type="text" name="username" required value="{{ u.username or '' }}" pattern="[a-zA-Z0-9._\-]{3,32}" placeholder="ivanov" autocomplete="off">
+        <span class="hint">Латиница, цифры, точка, дефис</span></div>
+      <div class="f w6"><label>{{ 'Пароль' if not uid else 'Новый пароль' }} {% if not uid %}<span class="req">*</span>{% endif %}</label>
+        <div class="pw-row"><input type="text" name="password" id="pw" value="{{ gen if not uid else '' }}" {{ 'required' if not uid }} minlength="6" autocomplete="new-password">
+          <button type="button" class="btn ghost sm" style="height:44px" onclick="const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint32Array(10));document.getElementById('pw').value=Array.from(r,x=>a[x%a.length]).join('')">Сгенерировать</button></div>
+        <span class="hint">Не короче 6 символов</span></div>
+      <div class="f w6"><label>Роль</label>
+        <div class="seg">{% for code, name in ROLES.items() %}<label><input type="radio" name="role" value="{{ code }}" {{ 'checked' if u.role == code }}><span>{{ name }}</span></label>{% endfor %}</div></div>
+      <div class="f w6"><label>Телефон</label><input type="tel" name="phone" value="{{ u.phone or '' }}"></div>
+      <div class="f w6"><label>Email</label><input type="email" name="email" value="{{ u.email or '' }}"></div>
+      <div class="f w12"><label class="check"><input type="checkbox" name="active" value="1" {{ 'checked' if u.active }}> Доступ включён (снимите галочку, чтобы заблокировать вход)</label></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} Сохранить</button>
+    <a class="btn ghost" href="{{ url_for('admin_users') }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, status_badge, empty %}
+{% block title %}Ценники{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Ценники</h1><p>Выберите авто: марка, модель, год, пробег, двигатель, КПП и цена подставятся сами. Дальше можно поправить и сохранить PDF или распечатать на A4.</p></div>
+  <div class="actions">
+    <a class="btn ghost" href="{{ url_for('pricetag', layout='v') }}" target="_blank">{{ icon('plus') }} Пустой вертикальный</a>
+    <a class="btn ghost" href="{{ url_for('pricetag', layout='h') }}" target="_blank">{{ icon('plus') }} Пустой горизонтальный</a>
+  </div>
+</div>
+
+<div class="grid g2 mb">
+  <div class="card tag-kind"><div class="tag-ico v"></div><div><h3>Вертикальный A4</h3><p class="muted">Крупная цена, ключевые цифры (год, пробег, двигатель, мощность), характеристики, преимущества, QR на Drom, Telegram и MAX</p></div></div>
+  <div class="card tag-kind"><div class="tag-ico h"></div><div><h3>Горизонтальный A4</h3><p class="muted">Для лобового стекла: марка и модель крупно, сетка характеристик, цена в наличии и под заказ, большой QR на сайт</p></div></div>
+</div>
+
+<div class="toolbar">
+  <h2>Автомобили в продаже <span class="muted" style="font-weight:500">{{ rows|length }}</span></h2><div class="grow"></div>
+  <div class="input-s">{{ icon('search', 16) }}<input id="tagFilter" placeholder="Марка, модель, госномер"></div>
+</div>
+<div class="card">
+  {% if rows %}
+  <div class="table-wrap"><table class="t" id="tagTable">
+    <thead><tr><th>Автомобиль</th><th>Откуда</th><th>Статус</th><th class="r">Цена</th><th class="r">Ценник</th></tr></thead>
+    <tbody>{% for k in rows %}
+      <tr data-s="{{ (car_title(k) ~ ' ' ~ (k.plate or '') ~ ' ' ~ (k.vin or ''))|lower }}">
+        <td><a href="{{ url_for('car_view', car_id=k.id) }}" style="color:var(--text)"><b>{{ car_title(k) }}</b></a><br>
+          <small class="muted">{{ k.engine or '' }}{{ ' · ' ~ k.transmission if k.transmission }}{{ ' · ' ~ (k.mileage|num) ~ ' км' if k.mileage }}</small></td>
+        <td>{{ k.origin }}</td>
+        <td>{{ status_badge(k.status) }}</td>
+        <td class="r money"><b>{{ k.sale_price|money if k.sale_price else '—' }}</b></td>
+        <td class="r nowrap">
+          <a class="btn ghost xs" href="{{ url_for('pricetag', layout='v', car_id=k.id) }}" target="_blank">{{ icon('tag', 14) }} Вертикальный</a>
+          <a class="btn ghost xs" href="{{ url_for('pricetag', layout='h', car_id=k.id) }}" target="_blank">{{ icon('tag', 14) }} Горизонтальный</a>
+        </td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}{{ empty('Нет авто в продаже. Добавьте машину на склад', 'car', 'Добавить авто' if can_edit, url_for('car_new')) }}{% endif %}
+</div>
+<p class="muted" style="margin-top:12px">Ценник открывается в новой вкладке. Телефон, сайт и QR-каналы запоминаются и подставляются в каждый следующий ценник. Если не хватает данных (мощность, комплектация, преимущества) — допишите их в ценнике или в карточке авто.</p>
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById('tagFilter')?.addEventListener('input', e => {
+  const v = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('#tagTable tbody tr').forEach(tr => tr.hidden = v && !tr.dataset.s.includes(v));
+});
+</script>{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новый автомобиль' if is_new else car_title(k) }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новый автомобиль' if is_new else car_title(k) }}</h1><p>Склад, заказ из-за рубежа, выкуп, комиссия или прокатный автопарк</p></div></div>
+<form method="post" enctype="multipart/form-data" class="card form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec">
+    <h3>Откуда авто и статус</h3>
+    <div class="seg" style="margin-bottom:14px">
+      {% for o in origins %}<label><input type="radio" name="origin" value="{{ o }}" {{ 'checked' if k.origin == o }}><span>{{ {'Склад':'🏬','Китай':'🇨🇳','Япония':'🇯🇵','Корея':'🇰🇷','Выкуп':'💵','Комиссия':'🤝','Прокат':'🔑'}[o] }} {{ o }}</span></label>{% endfor %}
+    </div>
+    <div class="fgrid">
+      <div class="f w3"><label>Статус</label>{{ select('status', statuses, k.status) }}</div>
+      <div class="f w3"><label>Дата прибытия / приёмки</label><input type="date" name="arrival_date" value="{{ k.arrival_date or '' }}"></div>
+      <div class="f w6"><label>Владелец (для комиссии / выкупа)</label>{{ select('owner_client_id', clients, k.owner_client_id, '— нет —', 'full_name') }}</div>
+    </div>
+  </div>
+  <div class="form-sec">
+    <h3>Автомобиль</h3>
+    <div class="fgrid">
+      <div class="f w3"><label>Марка <span class="req">*</span></label><input type="text" name="brand" required value="{{ k.brand or '' }}" list="brands" placeholder="Toyota"></div>
+      <div class="f w3"><label>Модель</label><input type="text" name="model" value="{{ k.model or '' }}" placeholder="Camry"></div>
+      <div class="f w2"><label>Год</label><input type="number" name="year" min="1980" max="2035" value="{{ k.year or '' }}"></div>
+      <div class="f w2"><label>Пробег, км</label><input type="text" class="money" inputmode="numeric" name="mileage" value="{{ k.mileage or '' }}"></div>
+      <div class="f w2"><label>Цвет</label><input type="text" name="color" value="{{ k.color or '' }}"></div>
+      <div class="f w6"><label>VIN / № кузова</label><input type="text" name="vin" value="{{ k.vin or '' }}" maxlength="20" style="text-transform:uppercase;font-family:ui-monospace,Consolas,monospace"></div>
+      <div class="f w3"><label>Госномер</label><input type="text" name="plate" value="{{ k.plate or '' }}" style="text-transform:uppercase" placeholder="А000АА138"></div>
+      <div class="f w3"><label>Кузов</label><input type="text" name="body" value="{{ k.body or '' }}" list="bodies" placeholder="Кроссовер"></div>
+      <div class="f w3"><label>Двигатель, л / л.с.</label><input type="text" name="engine" value="{{ k.engine or '' }}" placeholder="2.0 / 150"></div>
+      <div class="f w3"><label>Топливо</label>{{ select('fuel', fuels, k.fuel, '—') }}</div>
+      <div class="f w3"><label>КПП</label>{{ select('transmission', transmissions, k.transmission, '—') }}</div>
+      <div class="f w3"><label>Привод</label>{{ select('drive', drives, k.drive, '—') }}</div>
+    </div>
+    <datalist id="brands">{% for b in ['Toyota','Lexus','Honda','Mazda','Nissan','Subaru','Mitsubishi','Suzuki','Hyundai','Kia','Genesis','Geely','Chery','Haval','Changan','BYD','Li Auto','Zeekr','Exeed','Tank','Omoda','Jetour','Volkswagen','BMW','Mercedes-Benz','Audi','Lada'] %}<option>{{ b }}</option>{% endfor %}</datalist>
+    <datalist id="bodies">{% for b in ['Седан','Кроссовер','Внедорожник','Хэтчбек','Универсал','Минивэн','Пикап','Купе'] %}<option>{{ b }}</option>{% endfor %}</datalist>
+  </div>
+  <div class="form-sec">
+    <h3>Деньги</h3>
+    <div class="fgrid">
+      <div class="f w3"><label>Закупка / выкуп, ₽</label><input type="text" class="money calc" inputmode="numeric" name="purchase_price" value="{{ k.purchase_price or '' }}"></div>
+      <div class="f w3"><label>Расходы (доставка, растаможка, ремонт), ₽</label><input type="text" class="money calc" inputmode="numeric" name="costs" value="{{ k.costs or '' }}"></div>
+      <div class="f w3"><label>Цена продажи, ₽</label><input type="text" class="money calc" inputmode="numeric" name="sale_price" value="{{ k.sale_price or '' }}"></div>
+      <div class="f w3"><label>Цена аренды за сутки, ₽</label><input type="text" class="money" inputmode="numeric" name="rent_day_price" value="{{ k.rent_day_price or '' }}" placeholder="для проката"></div>
+      <div class="f w12"><span class="hint" id="marginHint"></span></div>
+    </div>
+  </div>
+  <div class="form-sec">
+    <h3>Фото и заметки</h3>
+    <div class="fgrid">
+      <div class="f w6"><label>Фото</label><input type="file" name="photo" accept="image/*" style="padding-top:10px">
+        {% if k.photo %}<label class="check" style="margin-top:6px"><input type="checkbox" name="remove_photo" value="1"> Удалить текущее фото</label>{% endif %}</div>
+      <div class="f w6"><label>Заметки</label><textarea name="notes" placeholder="Комплектация, дефекты, история">{{ k.notes or '' }}</textarea></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} {{ 'Добавить' if is_new else 'Сохранить' }}</button>
+    <a class="btn ghost" href="{{ url_for('cars') if is_new else url_for('car_view', car_id=k.id) }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script>
+(function(){ const p = CRM.parseMoney, f = n => CRM.fmt(Math.abs(n)) + ' ₽';
+  const calc = () => { const b = p(document.querySelector('[name=purchase_price]').value), c = p(document.querySelector('[name=costs]').value), s = p(document.querySelector('[name=sale_price]').value);
+    document.getElementById('marginHint').innerHTML = s ? `Себестоимость <b>${f(b + c)}</b> · ожидаемая маржа <b style="color:${s - b - c >= 0 ? 'var(--green)' : 'var(--red)'}">${s - b - c < 0 ? '−' : ''}${f(s - b - c)}</b>` : ''; };
+  document.querySelectorAll('.calc').forEach(i => i.addEventListener('input', calc)); calc(); })();
+</script>{% endblock %}

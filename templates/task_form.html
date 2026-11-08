@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новая задача' if is_new else 'Задача' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новая задача' if is_new else t.title }}</h1></div></div>
+<form method="post" class="card form" style="max-width:820px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="back" value="{{ back or '' }}">
+  <div class="form-sec">
+    <div class="fgrid">
+      <div class="f w12"><label>Что сделать <span class="req">*</span></label><input type="text" name="title" required value="{{ t.title or '' }}" {{ 'autofocus' if is_new }} placeholder="Например: позвонить по Harrier, заказать коврики"></div>
+      <div class="f w12"><label>Описание</label><textarea name="description">{{ t.description or '' }}</textarea></div>
+      <div class="f w3"><label>Срок</label><input type="date" name="due_date" value="{{ t.due_date or '' }}"></div>
+      <div class="f w3"><label>Время</label><input type="time" name="due_time" value="{{ t.due_time or '' }}"></div>
+      <div class="f w3"><label>Приоритет</label>{{ select('priority', priorities.items()|list, t.priority, None, None, 0) }}</div>
+      <div class="f w3"><label>Статус</label>{{ select('status', statuses, t.status) }}</div>
+      <div class="f w6"><label>Исполнитель</label>{{ select('assignee_id', users, t.assignee_id, '— не назначен —', 'full_name') }}</div>
+      <div class="f w6"><label>Клиент</label>{{ select('client_id', clients, t.client_id, '— без клиента —', 'full_name') }}</div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} {{ 'Создать' if is_new else 'Сохранить' }}</button>
+    <a class="btn ghost" href="{{ back or url_for('tasks') }}">Отмена</a>
+  </div>
+</form>
+{% if not is_new and can_edit %}
+<form method="post" action="{{ url_for('task_delete', tid=tid) }}" data-confirm="Удалить задачу?" style="margin-top:14px"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <button class="btn danger sm">{{ icon('trash', 16) }} Удалить</button></form>
+{% endif %}
+{% endblock %}

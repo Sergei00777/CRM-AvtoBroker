@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новая сделка' if is_new else 'Сделка' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новая сделка' if is_new else (d.title or 'Сделка') }}</h1>
+  {% if not is_new %}<p><a href="{{ url_for('client_view', cid=d.client_id) }}">← Карточка клиента</a></p>{% endif %}</div>
+  {% if not is_new %}<div class="actions">
+    <a class="btn ghost sm" href="{{ url_for('document_new', kind='dogovor', deal_id=d.id) }}">{{ icon('doc', 16) }} Договор</a>
+    <a class="btn ghost sm" href="{{ url_for('document_new', kind='akt_osmotra', deal_id=d.id) }}">{{ icon('doc', 16) }} Акт осмотра</a>
+    <a class="btn ghost sm" href="{{ url_for('task_new', client_id=d.client_id) }}">{{ icon('task', 16) }} Задача</a></div>{% endif %}
+</div>
+<form method="post" class="card form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="back" value="{{ back or '' }}">
+  <div class="form-sec">
+    <h3>Тип сделки</h3>
+    <div class="tiles">
+      {% for code, k in DEAL_KINDS.items() %}
+      <label class="tile"><input type="radio" name="kind" value="{{ code }}" {{ 'checked' if d.kind == code }}><span class="em">{{ k[1] }}</span><span><b>{{ k[0] }}</b></span></label>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="form-sec">
+    <div class="fgrid">
+      <div class="f w6"><label>Клиент <span class="req">*</span></label>
+        <select name="client_id" required><option value="">— выберите —</option>
+          {% for c in clients %}<option value="{{ c.id }}" {{ 'selected' if (d.client_id|string) == (c.id|string) }}>{{ c.full_name }}{{ ' · ' ~ c.phone if c.phone }}</option>{% endfor %}</select>
+        {% if is_new %}<span class="hint">Нет в списке? <a href="{{ url_for('client_new') }}">Создайте клиента</a></span>{% endif %}</div>
+      <div class="f w6"><label>Название</label><input type="text" name="title" value="{{ d.title or '' }}" placeholder="По умолчанию — тип сделки"></div>
+      <div class="f w8"><label>Желаемый автомобиль / описание</label><input type="text" name="car_wish" value="{{ d.car_wish or '' }}" placeholder="Марка, модель, год, комплектация, цвет"></div>
+      <div class="f"><label>Этап</label>{{ select('stage', stages, d.stage, None, None, 0) }}</div>
+      <div class="f w6"><label>Автомобиль со склада</label>
+        <select name="car_id"><option value="">— не выбран —</option>
+          {% for k in cars %}<option value="{{ k.id }}" {{ 'selected' if (d.car_id|string) == (k.id|string) }}>{{ car_title(k) }} · {{ k.origin }} · {{ k.status }}{{ ' · ' ~ k.plate if k.plate }}</option>{% endfor %}</select></div>
+      <div class="f w3"><label>Ответственный</label>{{ select('manager_id', users, d.manager_id, None, 'full_name') }}</div>
+      <div class="f w3"><label>Срок / дедлайн</label><input type="date" name="deadline" value="{{ d.deadline or '' }}"></div>
+    </div>
+  </div>
+  <div class="form-sec">
+    <h3>Деньги</h3>
+    <div class="fgrid">
+      <div class="f w3"><label>Бюджет клиента, ₽</label><input type="text" class="money" inputmode="numeric" name="budget" value="{{ d.budget or '' }}"></div>
+      <div class="f w3"><label>Сумма сделки, ₽</label><input type="text" class="money" inputmode="numeric" name="amount" value="{{ d.amount or '' }}"></div>
+      <div class="f w3"><label>Наш доход (комиссия), ₽</label><input type="text" class="money" inputmode="numeric" name="fee" value="{{ d.fee or '' }}"></div>
+      <div class="f w3"><label>Предоплата получена, ₽</label><input type="text" class="money" inputmode="numeric" name="prepaid" value="{{ d.prepaid or '' }}"></div>
+      <div class="f w12"><label>Заметки</label><textarea name="notes">{{ d.notes or '' }}</textarea></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} {{ 'Создать' if is_new else 'Сохранить' }}</button>
+    <a class="btn ghost" href="{{ back or url_for('deals') }}">Отмена</a>
+    <span class="grow"></span>
+  </div>
+</form>
+{% if not is_new and user.role == 'admin' %}
+<form method="post" action="{{ url_for('deal_delete', did=d.id) }}" data-confirm="Удалить сделку?" style="margin-top:14px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn danger sm">{{ icon('trash', 16) }} Удалить сделку</button></form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, empty %}
+{% block title %}Договоры и акты{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Договоры и акты</h1><p>Бланки заполняются данными клиента и авто автоматически, сохраняются в CRM и печатаются на A4</p></div></div>
+
+{% if can_edit %}
+<div class="doc-cards mb">
+  {% set desc = {'dogovor':'Договор-заявка на подбор и проверку авто + условия + акт оказанных услуг. 3 листа A4',
+                 'akt_osmotra':'Подробный акт осмотра: кузов, ЛКП, техника, неисправности, вердикт',
+                 'akt_peredachi':'Передача авто клиенту или от клиента: комплектность, пробег, состояние',
+                 'dogovor_prokata':'Договор аренды авто: сроки, стоимость, залог, ответственность'} %}
+  {% for code, k in DOC_KINDS.items() %}
+  <div class="doc-card">
+    <div class="di">{{ icon('doc', 22) }}</div>
+    <b>{{ k[0] }}</b><span class="muted" style="font-size:13.5px">{{ desc[code] }}</span>
+    <form method="post" action="{{ url_for('document_new') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="kind" value="{{ code }}">
+      {% if code == 'dogovor_prokata' %}
+        <select name="rental_id"><option value="">— аренда —</option>{% for r in rentals %}<option value="{{ r.id }}">{{ r.full_name }} · {{ r.brand }} {{ r.model or '' }} · {{ r.start_date|dt('short') }}</option>{% endfor %}</select>
+      {% else %}
+        <select name="client_id"><option value="">— клиент —</option>{% for c in clients %}<option value="{{ c.id }}">{{ c.full_name }}</option>{% endfor %}</select>
+        <select name="car_id"><option value="">— авто (необязательно) —</option>{% for k in cars %}<option value="{{ k.id }}">{{ car_title(k) }}{{ ' · ' ~ k.plate if k.plate }}</option>{% endfor %}</select>
+      {% endif %}
+      <button class="btn sm">{{ icon('plus', 16) }} Создать</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="toolbar">
+  <div class="tabs"><a href="{{ url_for('documents') }}" class="{{ 'on' if not kind }}">Все</a>
+    {% for code, k in DOC_KINDS.items() %}<a href="{{ url_for('documents', kind=code) }}" class="{{ 'on' if kind == code }}">{{ k[0] }}</a>{% endfor %}</div>
+</div>
+<div class="card">
+  {% if rows %}
+  <div class="table-wrap"><table class="t">
+    <thead><tr><th>№</th><th>Документ</th><th>Клиент</th><th>Автомобиль</th><th>Создал</th><th>Изменён</th></tr></thead>
+    <tbody>{% for d in rows %}
+      <tr data-href="{{ url_for('document_view', did=d.id) }}">
+        <td class="num">{{ d.number }}</td>
+        <td><b>{{ DOC_KINDS[d.kind][0] }}</b><br><small class="muted">{{ d.title }}</small></td>
+        <td>{{ d.client or '—' }}</td>
+        <td>{{ (d.brand ~ ' ' ~ (d.model or '') ~ (', ' ~ d.year if d.year else '')) if d.brand else '—' }}</td>
+        <td class="muted">{{ d.author or '' }}</td>
+        <td class="muted nowrap">{{ d.updated_at|dt('time') }}</td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}{{ empty('Документов пока нет', 'doc') }}{% endif %}
+</div>
+{% endblock %}

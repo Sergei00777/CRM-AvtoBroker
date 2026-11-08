@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, status_badge, empty %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ title }}</h1><p>{{ totals.n }} авто{% if totals.sale %} · в продаже на {{ totals.sale|money }}{% endif %}{% if totals.margin %} · маржа {{ totals.margin|money }}{% endif %}</p></div>
+  {% if can_edit %}<div class="actions"><a class="btn" href="{{ url_for('car_new', view=view) }}">{{ icon('plus') }} Добавить авто</a></div>{% endif %}
+</div>
+<div class="toolbar">
+  <div class="tabs">
+    {% for code, v in views.items() %}{% if code not in ('china','japan','korea') or view in ('transit','china','japan','korea') %}
+    <a href="{{ url_for('cars', view=code) }}" class="{{ 'on' if view == code }}">{{ v[0].replace('Автомобили на складе','Склад').replace('Все автомобили','Все').replace('Прокатный автопарк','Автопарк').replace('Заказ: ','') }}</a>
+    {% endif %}{% endfor %}
+  </div>
+  <div class="grow"></div>
+  <form class="input-s">{{ icon('search', 16) }}<input name="q" value="{{ s }}" placeholder="Марка, VIN, госномер"><input type="hidden" name="view" value="{{ view }}">
+    <select name="status" onchange="this.form.submit()" style="border:0;height:34px;padding:0 6px;width:auto;box-shadow:none"><option value="">Любой статус</option>
+      {% for x in statuses %}<option {{ 'selected' if st == x }}>{{ x }}</option>{% endfor %}</select></form>
+  <div class="tabs">
+    <a href="{{ url_for('cars', view=view, q=s, status=st, layout='grid') }}" class="{{ 'on' if layout == 'grid' }}" title="Плитка">{{ icon('grid', 16) }}</a>
+    <a href="{{ url_for('cars', view=view, q=s, status=st, layout='list') }}" class="{{ 'on' if layout == 'list' }}" title="Таблица">{{ icon('list', 16) }}</a>
+  </div>
+</div>
+
+{% if not rows %}
+  <div class="card">{{ empty('Автомобилей нет', 'car', 'Добавить авто' if can_edit, url_for('car_new', view=view)) }}</div>
+{% elif layout == 'list' %}
+<div class="card"><div class="table-wrap"><table class="t">
+  <thead><tr><th>Автомобиль</th><th>Госномер / VIN</th><th>Откуда</th><th>Статус</th><th class="r">Пробег</th><th class="r">Закупка + расходы</th><th class="r">Цена</th><th class="r">Маржа</th></tr></thead>
+  <tbody>{% for k in rows %}{% set mg = (k.sale_price or 0) - (k.purchase_price or 0) - (k.costs or 0) %}
+    <tr data-href="{{ url_for('car_view', car_id=k.id) }}">
+      <td><b>{{ car_title(k) }}</b><br><small class="muted">{{ k.color or '' }} {{ k.transmission or '' }}</small></td>
+      <td>{% if k.plate %}<span class="plate">{{ k.plate }}</span><br>{% endif %}<small class="muted">{{ k.vin or '' }}</small></td>
+      <td>{{ k.origin }}{% if k.owner %}<br><small class="muted">{{ k.owner }}</small>{% endif %}</td>
+      <td>{{ status_badge(k.status) }}{% if k.arrival_date and k.status == 'В пути' %}<br><small class="muted">прибытие {{ k.arrival_date|dt('short') }}</small>{% endif %}</td>
+      <td class="r num">{{ k.mileage|num if k.mileage else '—' }}</td>
+      <td class="r money">{{ ((k.purchase_price or 0) + (k.costs or 0))|money }}</td>
+      <td class="r money"><b>{{ k.sale_price|money if k.sale_price else (k.rent_day_price|money ~ '/сут' if k.rent_day_price else '—') }}</b></td>
+      <td class="r money {{ 'green' if mg > 0 else 'red' if k.sale_price }}">{{ mg|money if k.sale_price else '—' }}</td>
+    </tr>{% endfor %}</tbody></table></div>
+  <div class="tfoot"><span>Вложено: <b>{{ totals.buy|money }}</b></span><span>В продаже: <b>{{ totals.sale|money }}</b></span><span>Ожидаемая маржа: <b>{{ totals.margin|money }}</b></span></div>
+</div>
+{% else %}
+<div class="cars-grid">
+  {% for k in rows %}
+  <a class="carc" href="{{ url_for('car_view', car_id=k.id) }}">
+    <div class="ph">
+      {% if k.photo %}<img src="{{ url_for('uploads', name=k.photo) }}" alt="" loading="lazy">{% else %}{{ icon('car', 72) }}{% endif %}
+      {{ status_badge(k.status) }}<span class="org">{{ {'Китай':'🇨🇳 ','Япония':'🇯🇵 ','Корея':'🇰🇷 '}.get(k.origin, '') }}{{ k.origin }}</span>
+    </div>
+    <div class="cb">
+      <div class="cn">{{ k.brand }} {{ k.model or '' }}</div>
+      <div class="cs">{{ k.year or '' }}{% if k.mileage %} · {{ k.mileage|num }} км{% endif %}{% if k.transmission %} · {{ k.transmission }}{% endif %}{% if k.drive %} · {{ k.drive }}{% endif %}</div>
+      <div class="cs">{% if k.plate %}<span class="plate">{{ k.plate }}</span>{% elif k.vin %}VIN …{{ k.vin[-6:] }}{% endif %}
+        {% if k.rent_until %} · в аренде до {{ k.rent_until|dt('short') }}{% elif k.arrival_date and k.status == 'В пути' %} · прибытие {{ k.arrival_date|dt('short') }}{% endif %}</div>
+      <div class="cp">
+        {% if k.origin == 'Прокат' %}<b>{{ k.rent_day_price|money }}<small class="muted" style="font:500 13px var(--font)"> / сутки</small></b>
+        {% else %}<b>{{ k.sale_price|money if k.sale_price else 'Цена не указана' }}</b>
+          {% set mg = (k.sale_price or 0) - (k.purchase_price or 0) - (k.costs or 0) %}{% if k.sale_price and k.purchase_price %}<span class="{{ 'green' if mg > 0 else 'red' }}" style="font-weight:600;font-size:13px">{{ '+' if mg > 0 }}{{ mg|money(True) }}</span>{% endif %}{% endif %}
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script>document.cookie = 'cars_layout={{ layout }};path=/;max-age=31536000';</script>{% endblock %}

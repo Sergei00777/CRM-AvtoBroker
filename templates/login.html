@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ 'Первый запуск' if setup else 'Вход' }} · CRM АвтоБрокер</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=3">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('crm-theme')||'light'}catch(e){}</script>
+</head>
+<body>
+<div class="auth">
+  <div class="auth-art">
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" width="48" height="48" style="border-radius:12px" alt="">
+      <div><b style="font:800 22px var(--font-h)">АвтоБрокер</b><div style="color:#7E8A9A;font-size:13px">CRM · Иркутск</div></div>
+    </div>
+    <div>
+      <div class="big">Все клиенты, авто и&nbsp;сделки — <em>в&nbsp;одном окне</em></div>
+      <p>Заказ авто из Китая, Японии и Кореи, подбор, выкуп, комиссия и прокат. Воронка, склад, календарь, договоры и акты.</p>
+      <ul>
+        <li><span>🇨🇳</span>Заказ из-за рубежа</li>
+        <li><span>🔍</span>Подбор и осмотр</li>
+        <li><span>🔑</span>Прокат и график</li>
+        <li><span>📄</span>Договоры и акты</li>
+      </ul>
+    </div>
+    <div style="color:#5E6A7A;font-size:13px">автоброкер38.рф</div>
+  </div>
+  <div class="auth-form">
+    <form class="auth-box" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      {% if setup %}
+        <h1>Первый запуск</h1>
+        <p class="muted" style="margin:0 0 24px">Создайте учётную запись администратора. Только администратор сможет добавлять сотрудников и выдавать им логины и пароли.</p>
+      {% else %}
+        <h1>Вход в CRM</h1>
+        <p class="muted" style="margin:0 0 24px">Логин и пароль выдаёт администратор</p>
+      {% endif %}
+      {% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}
+        <div class="toast {{ cat }}" style="margin-bottom:16px;animation:none">{{ m }}</div>{% endfor %}{% endwith %}
+      {% if setup %}
+        <div class="f"><label>Ваше имя</label><input type="text" name="full_name" required placeholder="Пуховский Илья Дмитриевич" value="{{ request.form.full_name }}"></div>
+      {% endif %}
+      <div class="f"><label>Логин</label><input type="text" name="username" required autofocus autocomplete="username" placeholder="admin" value="{{ request.form.username }}"></div>
+      <div class="f"><label>Пароль</label><input type="password" name="password" required autocomplete="{{ 'new-password' if setup else 'current-password' }}"></div>
+      {% if setup %}
+        <div class="f"><label>Пароль ещё раз</label><input type="password" name="password2" required autocomplete="new-password"></div>
+        <label class="check" style="margin:4px 0 20px"><input type="checkbox" name="demo" value="1"> Заполнить демо-данными, чтобы посмотреть, как всё работает</label>
+        <button class="btn block">Создать и войти</button>
+      {% else %}
+        <label class="check" style="margin:4px 0 20px"><input type="checkbox" name="remember" value="1" checked> Запомнить меня</label>
+        <button class="btn block">Войти</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+</body>
+</html>

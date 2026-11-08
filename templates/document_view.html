@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon %}
+{% block title %}{{ d.title }}{% endblock %}
+{% block crumbs %}<a href="{{ url_for('documents') }}" style="color:var(--text-3)">Договоры и акты</a> / {{ d.title }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div>
+    <h2 style="font-size:22px">{{ d.title }}</h2>
+    <span class="muted">{% if d.client_id %}Клиент: <a href="{{ url_for('client_view', cid=d.client_id) }}">{{ d.client }}</a> · {% endif %}{% if car %}Авто: <a href="{{ url_for('car_view', car_id=car.id) }}">{{ car_title(car) }}</a> · {% endif %}
+      <span id="syncStatus">Изменения сохраняются в CRM автоматически</span></span>
+  </div>
+  <div class="grow"></div>
+  <a class="btn ghost sm" href="{{ url_for('document_form', did=d.id) }}" target="_blank">{{ icon('external', 16) }} Открыть во весь экран</a>
+  <button class="btn sm" type="button" onclick="document.getElementById('docFrame').contentWindow.document.getElementById('btnPrint').click()">{{ icon('print', 16) }} Печать / PDF</button>
+  {% if can_edit %}
+  <form method="post" action="{{ url_for('document_delete', did=d.id) }}" data-confirm="Удалить документ из CRM?"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="icon-btn sm" title="Удалить">{{ icon('trash', 16) }}</button></form>
+  {% endif %}
+</div>
+<iframe id="docFrame" class="doc-frame" src="{{ url_for('document_form', did=d.id) }}"></iframe>
+<p class="muted" style="margin-top:10px">Заполняйте бланк прямо здесь: данные клиента и автомобиля уже подставлены. Кнопка «Сохранить…» в бланке тоже сохраняет документ в CRM.</p>
+{% endblock %}
+{% block scripts %}<script>
+window.addEventListener('message', e => { if (e.data && e.data.crmSaved) document.getElementById('syncStatus').textContent = 'Сохранено в CRM ' + e.data.crmSaved; });
+</script>{% endblock %}

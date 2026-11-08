@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar, temp_badge, status_badge, kind_chip, stage_badge, empty %}
+{% block title %}Поиск{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Поиск: «{{ s }}»</h1><p>Найдено: клиентов {{ res.clients|length }}, авто {{ res.cars|length }}, сделок {{ res.deals|length }}</p></div></div>
+{% if res.clients %}<h2 class="mb">Клиенты</h2><div class="card mb"><div class="table-wrap"><table class="t"><tbody>
+  {% for c in res.clients %}<tr data-href="{{ url_for('client_view', cid=c.id) }}"><td><div class="who">{{ avatar(c.full_name) }}<div><b>{{ c.full_name }}</b><small>{{ c.phone or '' }}</small></div></div></td><td>{{ temp_badge(c.temp) }}</td><td class="muted">{{ c.email or '' }}</td></tr>{% endfor %}
+</tbody></table></div></div>{% endif %}
+{% if res.cars %}<h2 class="mb">Автомобили</h2><div class="card mb"><div class="table-wrap"><table class="t"><tbody>
+  {% for k in res.cars %}<tr data-href="{{ url_for('car_view', car_id=k.id) }}"><td><b>{{ car_title(k) }}</b></td><td>{% if k.plate %}<span class="plate">{{ k.plate }}</span>{% endif %}</td><td class="muted">{{ k.vin or '' }}</td><td>{{ status_badge(k.status) }}</td><td class="r money">{{ k.sale_price|money if k.sale_price else '' }}</td></tr>{% endfor %}
+</tbody></table></div></div>{% endif %}
+{% if res.deals %}<h2 class="mb">Сделки</h2><div class="card mb"><div class="table-wrap"><table class="t"><tbody>
+  {% for d in res.deals %}<tr data-href="{{ url_for('deal_edit', did=d.id) }}"><td><b>{{ d.client }}</b></td><td>{{ kind_chip(d.kind) }}</td><td>{{ d.car_wish or '' }}</td><td>{{ stage_badge(d.stage, STAGE_NAMES[d.stage]) }}</td></tr>{% endfor %}
+</tbody></table></div></div>{% endif %}
+{% if not (res.clients or res.cars or res.deals) %}<div class="card">{{ empty('Ничего не найдено. Попробуйте часть телефона, VIN или госномера') }}</div>{% endif %}
+{% endblock %}

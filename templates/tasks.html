@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar, empty %}
+{% block title %}Задачи{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Задачи</h1><p>Отмечайте выполненные галочкой — без перезагрузки</p></div>
+  {% if can_edit %}<div class="actions"><a class="btn" href="{{ url_for('task_new') }}">{{ icon('plus') }} Новая задача</a></div>{% endif %}
+</div>
+<div class="toolbar">
+  <div class="tabs">
+    {% for code, name in [('open','Открытые'),('today','На сегодня'),('overdue','Просроченные'),('done','Выполненные'),('all','Все')] %}
+    <a href="{{ url_for('tasks', f=code, who=who) }}" class="{{ 'on' if flt == code }}">{{ name }}</a>{% endfor %}
+  </div>
+  <div class="grow"></div>
+  <div class="tabs"><a href="{{ url_for('tasks', f=flt) }}" class="{{ 'on' if not who }}">Все сотрудники</a><a href="{{ url_for('tasks', f=flt, who='me') }}" class="{{ 'on' if who == 'me' }}">Мои</a></div>
+</div>
+
+{% set titles = {'overdue':'Просрочено','today':'Сегодня','week':'Ближайшие 7 дней','later':'Позже','nodate':'Без срока','done':'Выполнено'} %}
+{% set ns = namespace(any=False) %}
+{% for g, items in groups.items() if items %}{% set ns.any = True %}
+  <div class="group-h {{ 'red' if g == 'overdue' }}">{{ titles[g] }} <em>{{ items|length }}</em></div>
+  <div class="card">
+    {% for t in items %}
+    <div class="task {{ 'done' if t.status == 'Выполнена' }}">
+      {% if can_edit %}<form class="tick-form" method="post" action="{{ url_for('task_toggle', tid=t.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="tick" title="Выполнено">{{ icon('check', 14) }}</button></form>{% endif %}
+      <span class="dot {{ t.priority }}" title="Приоритет: {{ TASK_PRIORITIES[t.priority] }}"></span>
+      <a class="row-m" href="{{ url_for('task_edit', tid=t.id) }}" style="color:inherit;text-decoration:none">
+        <div class="row-t">{{ t.title }}</div>
+        <div class="row-s">{% if t.client %}{{ t.client }} · {% endif %}{{ t.status }}{% if t.description %} · {{ t.description[:80] }}{% endif %}</div>
+      </a>
+      <div class="row-r {{ 'red' if g == 'overdue' }}" style="font-weight:600">{{ t.due_date|dt('human') if t.due_date }}{{ ' ' ~ t.due_time if t.due_time }}</div>
+      {{ avatar(t.assignee, 'sm') if t.assignee }}
+    </div>
+    {% endfor %}
+  </div>
+{% endfor %}
+{% if not ns.any %}<div class="card">{{ empty('Задач нет', 'check', 'Создать задачу' if can_edit, url_for('task_new')) }}</div>{% endif %}
+{% endblock %}

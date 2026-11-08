@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, status_badge, stage_badge, kind_chip %}
+{% block title %}{{ car_title(k) }}{% endblock %}
+{% block crumbs %}<a href="{{ url_for('cars') }}" style="color:var(--text-3)">Склад</a> / {{ car_title(k) }}{% endblock %}
+{% block content %}
+{% set mg = (k.sale_price or 0) - (k.purchase_price or 0) - (k.costs or 0) %}
+<div class="card hero-car mb">
+  <div class="ph">{% if k.photo %}<img src="{{ url_for('uploads', name=k.photo) }}" alt="">{% else %}{{ icon('car', 120) }}{% endif %}</div>
+  <div style="padding:26px 28px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">{{ status_badge(k.status) }}<span class="chip">{{ k.origin }}</span>{% if k.plate %}<span class="plate">{{ k.plate }}</span>{% endif %}</div>
+    <h1 style="margin:12px 0 4px">{{ k.brand }} {{ k.model or '' }}</h1>
+    <p class="muted" style="margin:0 0 18px;font-size:15px">{{ k.year or '' }}{% if k.mileage %} · {{ k.mileage|num }} км{% endif %}{% if k.vin %} · VIN {{ k.vin }}{% endif %}</p>
+    <div class="money-tiles mb">
+      {% if k.origin == 'Прокат' or k.rent_day_price %}
+        <div><span>Аренда в сутки</span><b>{{ k.rent_day_price|money }}</b></div>
+        <div><span>Доход с проката</span><b>{{ rent_income|money }}</b></div>
+        <div><span>Аренд всего</span><b>{{ rentals|length }}</b></div>
+        <div><span>Закупка</span><b>{{ k.purchase_price|money }}</b></div>
+      {% else %}
+        <div><span>Закупка / выкуп</span><b>{{ k.purchase_price|money }}</b></div>
+        <div><span>Расходы</span><b>{{ k.costs|money }}</b></div>
+        <div><span>Цена продажи</span><b>{{ k.sale_price|money }}</b></div>
+        <div><span>Маржа</span><b class="{{ 'green' if mg > 0 else 'red' }}">{{ mg|money if k.sale_price else '—' }}</b></div>
+      {% endif %}
+    </div>
+    {% if can_edit %}
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn sm" href="{{ url_for('car_edit', car_id=k.id) }}">{{ icon('edit', 16) }} Изменить</a>
+      {% if k.origin == 'Прокат' or k.rent_day_price %}<a class="btn ghost sm" href="{{ url_for('rental_new', car_id=k.id) }}">{{ icon('key', 16) }} Сдать в аренду</a>{% endif %}
+      {% if k.origin != 'Прокат' %}<a class="btn ghost sm" href="{{ url_for('deal_new', car_id=k.id, kind='sale') }}">{{ icon('funnel', 16) }} Сделка продажи</a>{% endif %}
+      {% if k.origin != 'Прокат' %}<a class="btn ghost sm" href="{{ url_for('pricetag', layout='v', car_id=k.id) }}" target="_blank">{{ icon('tag', 16) }} Ценник</a>
+      <a class="btn ghost sm" href="{{ url_for('pricetag', layout='h', car_id=k.id) }}" target="_blank">{{ icon('tag', 16) }} Ценник гориз.</a>{% endif %}
+      <a class="btn ghost sm" href="{{ url_for('document_new', kind='akt_osmotra', car_id=k.id, client_id=k.owner_client_id or '') }}">{{ icon('doc', 16) }} Акт осмотра</a>
+      <a class="btn ghost sm" href="{{ url_for('document_new', kind='akt_peredachi', car_id=k.id, client_id=k.owner_client_id or '') }}">{{ icon('doc', 16) }} Акт приёма-передачи</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid g-main">
+  <div>
+    <section class="card mb"><div class="card-h"><h2>Характеристики</h2></div>
+      <div class="card-b specs">
+        <div><span>Марка, модель</span><b>{{ k.brand }} {{ k.model or '' }}</b></div><div><span>Год</span><b>{{ k.year or '—' }}</b></div>
+        <div><span>Кузов</span><b>{{ k.body or '—' }}</b></div><div><span>Цвет</span><b>{{ k.color or '—' }}</b></div>
+        <div><span>Двигатель</span><b>{{ k.engine or '—' }}</b></div><div><span>Топливо</span><b>{{ k.fuel or '—' }}</b></div>
+        <div><span>КПП</span><b>{{ k.transmission or '—' }}</b></div><div><span>Привод</span><b>{{ k.drive or '—' }}</b></div>
+        <div><span>Пробег</span><b>{{ (k.mileage|num ~ ' км') if k.mileage else '—' }}</b></div><div><span>Госномер</span><b>{{ k.plate or '—' }}</b></div>
+        <div><span>VIN</span><b style="font-family:ui-monospace,Consolas,monospace">{{ k.vin or '—' }}</b></div><div><span>Прибытие / приёмка</span><b>{{ k.arrival_date|dt if k.arrival_date else '—' }}</b></div>
+        {% if k.owner %}<div><span>Владелец</span><b><a href="{{ url_for('client_view', cid=k.owner_client_id) }}">{{ k.owner }}</a></b></div>{% endif %}
+      </div>
+      {% if k.notes %}<div class="card-b" style="white-space:pre-wrap;color:var(--text-2)">{{ k.notes }}</div>{% endif %}
+    </section>
+    {% if rentals %}
+    <section class="card mb"><div class="card-h"><h2>История проката</h2></div>
+      <div class="table-wrap"><table class="t"><thead><tr><th>Клиент</th><th>Период</th><th>Статус</th><th class="r">Сумма</th></tr></thead><tbody>
+      {% for r in rentals %}<tr data-href="{{ url_for('rental_edit', rid=r.id) }}"><td><b>{{ r.client }}</b></td><td>{{ r.start_date|dt }} — {{ r.end_date|dt }}</td><td>{{ status_badge(r.status) }}</td><td class="r money">{{ r.total|money }}</td></tr>{% endfor %}
+      </tbody></table></div></section>
+    {% endif %}
+  </div>
+  <div>
+    <section class="card mb"><div class="card-h"><h2>Сделки</h2></div>
+      <div class="card-b rows">{% for d in deals %}<a class="row" href="{{ url_for('deal_edit', did=d.id) }}"><div class="row-m"><div class="row-t">{{ d.client }}</div><div class="row-s">{{ kind_chip(d.kind) }} {{ stage_badge(d.stage, STAGE_NAMES[d.stage]) }}</div></div></a>
+      {% else %}<p class="muted" style="margin:0">Не привязан к сделкам</p>{% endfor %}</div></section>
+    <section class="card mb"><div class="card-h"><h2>Документы</h2></div>
+      <div class="card-b rows">{% for d in docs %}<a class="row" href="{{ url_for('document_view', did=d.id) }}"><span class="red">{{ icon('doc') }}</span><div class="row-m"><div class="row-t">{{ d.title }}</div><div class="row-s">{{ d.updated_at|dt('time') }}</div></div></a>
+      {% else %}<p class="muted" style="margin:0">Документов нет</p>{% endfor %}</div></section>
+    {% if user.role == 'admin' %}
+    <form method="post" action="{{ url_for('car_delete', car_id=k.id) }}" data-confirm="Удалить автомобиль?"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn danger sm block">{{ icon('trash', 16) }} Удалить авто</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

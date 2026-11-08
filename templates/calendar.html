@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon %}
+{% block title %}Календарь{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ month_name }} {{ y }}</h1><p>Задачи, встречи, звонки, выдача и возврат авто в прокате, сроки сделок</p></div>
+  <div class="actions">
+    <a class="icon-btn" href="{{ url_for('calendar_view', y=prev[0], m=prev[1]) }}">{{ icon('left') }}</a>
+    <a class="btn ghost" href="{{ url_for('calendar_view') }}">Сегодня</a>
+    <a class="icon-btn" href="{{ url_for('calendar_view', y=next[0], m=next[1]) }}">{{ icon('right') }}</a>
+    {% if can_edit %}<a class="btn" href="{{ url_for('event_new', date=sel) }}">{{ icon('plus') }} Событие</a>{% endif %}
+  </div>
+</div>
+<div class="grid g-main">
+  <section class="card" style="overflow:hidden">
+    <div class="cal">
+      {% for w in ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'] %}<div class="wd">{{ w }}</div>{% endfor %}
+      {% for week in weeks %}{% for d in week %}{% set k = d.isoformat() %}{% set its = by_day.get(k, []) %}
+        <a class="day {{ 'out' if d.month != m }} {{ 'today' if d == t }} {{ 'sel' if k == sel }}" href="{{ url_for('calendar_view', y=y, m=m, d=k) }}">
+          <span class="dn">{{ d.day }}</span>
+          {% for it in its[:3] %}<span class="ev {{ it.type }} {{ 'done' if it.done }}">{{ it.time ~ ' ' if it.time }}{{ it.title }}</span>{% endfor %}
+          {% if its|length > 3 %}<span class="more">ещё {{ its|length - 3 }}</span>{% endif %}
+        </a>
+      {% endfor %}{% endfor %}
+    </div>
+  </section>
+  <aside>
+    <section class="card mb">
+      <div class="card-h"><h2>{{ sel_date.day }} {{ months_gen[sel_date.month - 1] }}, {{ weekdays[sel_date.weekday()] }}</h2></div>
+      <div class="card-b agenda">
+        {% for it in sel_items %}
+        {% set col = {'task':'var(--blue)','event':'var(--violet)','call':'var(--green)','rent_out':'#E8A23A','rent_in':'var(--cyan)','deal':'var(--red)'}[it.type] %}
+        <a class="ev" href="{{ it.url }}" style="border-color:{{ col }}{{ ';opacity:.55;text-decoration:line-through' if it.done }}">{{ it.time ~ ' · ' if it.time }}<b>{{ it.title }}</b>{% if it.sub %}<small>{{ it.sub }}</small>{% endif %}</a>
+        {% else %}<p class="muted" style="margin:0 0 12px">На этот день ничего не запланировано</p>{% endfor %}
+        {% if can_edit %}<div style="display:flex;gap:8px;margin-top:6px">
+          <a class="btn ghost sm" href="{{ url_for('event_new', date=sel) }}">+ Событие</a>
+          <a class="btn ghost sm" href="{{ url_for('task_new', date=sel) }}">+ Задача</a>
+          <a class="btn ghost sm" href="{{ url_for('rental_new', start=sel) }}">+ Аренда</a></div>{% endif %}
+      </div>
+    </section>
+    <section class="card"><div class="card-b" style="padding-top:18px">
+      <div class="legend" style="flex-direction:column;gap:8px">
+        <span><i style="background:var(--blue)"></i>Задачи</span><span><i style="background:var(--violet)"></i>Встречи и события</span>
+        <span><i style="background:var(--green)"></i>Перезвонить клиенту</span><span><i style="background:#E8A23A"></i>Выдача авто в прокат</span>
+        <span><i style="background:var(--cyan)"></i>Возврат авто из проката</span><span><i style="background:var(--red)"></i>Сроки сделок</span>
+      </div></div></section>
+  </aside>
+</div>
+{% endblock %}

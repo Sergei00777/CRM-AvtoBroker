@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar %}
+{% block title %}Сотрудники и доступ{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Сотрудники и доступ</h1><p>Только администратор создаёт логины и пароли и выдаёт их сотрудникам</p></div>
+  <div class="actions"><a class="btn" href="{{ url_for('admin_user') }}">{{ icon('user-plus') }} Добавить сотрудника</a></div>
+</div>
+
+{% set cred = session.pop('new_credentials', None) %}
+{% if cred %}
+<div class="cred">
+  <h3 style="margin-bottom:8px">Данные для входа — {{ cred.name }}</h3>
+  <p style="margin:0 0 12px">Передайте сотруднику. Пароль больше нигде не показывается — в базе хранится только его хэш.</p>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+    <span>Адрес: <code>{{ request.host_url }}</code></span>
+    <span>Логин: <code>{{ cred.login }}</code></span>
+    <span>Пароль: <code>{{ cred.password }}</code></span>
+    <button class="btn ghost sm" type="button" onclick="navigator.clipboard.writeText('CRM {{ settings.company_name }}\nАдрес: {{ request.host_url }}\nЛогин: {{ cred.login }}\nПароль: {{ cred.password }}').then(()=>this.textContent='Скопировано ✓')">{{ icon('copy', 16) }} Скопировать</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-wrap"><table class="t">
+    <thead><tr><th>Сотрудник</th><th>Логин</th><th>Роль</th><th class="r">Клиентов</th><th class="r">Сделок в работе</th><th class="r">Задач</th><th>Последний вход</th><th>Статус</th></tr></thead>
+    <tbody>{% for u in rows %}
+      <tr data-href="{{ url_for('admin_user', uid=u.id) }}" style="{{ 'opacity:.5' if not u.active }}">
+        <td><div class="who">{{ avatar(u.full_name) }}<div><b>{{ u.full_name }}</b><small>{{ u.phone or u.email or '' }}</small></div></div></td>
+        <td><code>{{ u.username }}</code></td>
+        <td><span class="badge {{ 't-hot' if u.role == 'admin' else 't-cold' if u.role == 'manager' else 't-arch' }}">{{ ROLES[u.role] }}</span></td>
+        <td class="r num">{{ u.n_clients }}</td><td class="r num">{{ u.n_deals }}</td><td class="r num">{{ u.n_tasks }}</td>
+        <td class="muted nowrap">{{ u.last_login|dt('time') if u.last_login else 'ещё не входил' }}</td>
+        <td>{{ '<span class="badge s-ok">Активен</span>'|safe if u.active else '<span class="badge s-mute">Отключён</span>'|safe }}</td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+
+<div class="grid g3" style="margin-top:20px">
+  <div class="card card-b" style="padding-top:20px"><h3>👑 Администратор</h3><p class="muted" style="margin:6px 0 0">Всё, включая сотрудников, настройки, удаление записей и резервную копию базы.</p></div>
+  <div class="card card-b" style="padding-top:20px"><h3>💼 Менеджер</h3><p class="muted" style="margin:6px 0 0">Клиенты, сделки, склад, прокат, задачи, календарь и документы. Без удаления и без доступа к настройкам.</p></div>
+  <div class="card card-b" style="padding-top:20px"><h3>👁 Наблюдатель</h3><p class="muted" style="margin:6px 0 0">Только просмотр: дашборд, клиенты, склад, календарь. Подходит для инвестора или партнёра.</p></div>
+</div>
+{% endblock %}

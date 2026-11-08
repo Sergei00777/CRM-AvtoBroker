@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar %}
+{% block title %}Чат{% endblock %}
+{% block content %}
+<div class="chat card" id="chatApp" {% if active %}data-cid="{{ active.id }}" data-group="{{ active.is_group }}"
+     data-msgs="{{ url_for('chat_messages', cid=active.id) }}" data-send="{{ url_for('chat_send', cid=active.id) }}"{% endif %}>
+  <aside class="chat-side {{ 'has-active' if active }}">
+    <div class="chat-side-h">
+      <h2>Чат</h2>
+      <button class="btn sm" type="button" onclick="document.getElementById('dlgGroup').showModal()">{{ icon('users', 16) }} Новая группа</button>
+    </div>
+    <div class="input-s" style="margin:0 14px 10px">{{ icon('search', 16) }}<input id="chatFilter" placeholder="Поиск чата или сотрудника"></div>
+    <div class="chat-list">
+      {% for c in chats %}
+      <a class="chat-item {{ 'on' if active and active.id == c.id }}" href="{{ url_for('chat', cid=c.id) }}" data-cid="{{ c.id }}" data-s="{{ c.title|lower }}">
+        {% if c.is_group %}<span class="avatar grp" style="--h: {{ c.title|length * 53 % 360 }}">{{ icon('users', 18) }}</span>{% else %}{{ avatar(c.title, '', c.photo) }}{% endif %}
+        <div class="ci-m"><div class="ci-t"><b>{{ c.title }}</b><small>{{ c.time|dt('short') if c.time[:10] != today_iso else c.time[11:16] }}</small></div>
+          <div class="ci-p"><span>{{ c.preview or ('Группа · ' ~ c.members ~ ' участн.' if c.is_group else 'Нет сообщений') }}</span><em {{ 'hidden' if not c.unread or (active and active.id == c.id) }}>{{ c.unread }}</em></div></div>
+      </a>
+      {% endfor %}
+      <div class="chat-sec">Сотрудники</div>
+      {% for s in staff %}
+      <a class="chat-item" href="{{ url_for('chat_dm', uid=s.id) }}" data-s="{{ s.full_name|lower }}">
+        {{ avatar(s.full_name) }}<div class="ci-m"><div class="ci-t"><b>{{ s.full_name }}</b></div><div class="ci-p"><span>{{ ROLES[s.role] }} · написать</span></div></div>
+      </a>
+      {% else %}
+      <p class="muted pad" style="font-size:13.5px">Других сотрудников пока нет.{% if user.role == 'admin' %} <a href="{{ url_for('admin_user') }}">Добавить</a>{% endif %}</p>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <section class="chat-main">
+    {% if active %}
+    <header class="chat-h">
+      <a class="icon-btn sm chat-back" href="{{ url_for('chat') }}">{{ icon('left', 16) }}</a>
+      {% if active.is_group %}<span class="avatar grp" style="--h: {{ active.title|length * 53 % 360 }}">{{ icon('users', 18) }}</span>{% else %}{{ avatar(active.title, '', active.photo) }}{% endif %}
+      <div style="flex:1;min-width:0"><b class="chat-title">{{ active.title }}</b>
+        <small class="muted">{% if active.is_group %}{{ members|length }} участн.: {{ members|map(attribute='full_name')|map('short')|join(', ') }}{% elif active.peer %}{{ ROLES[active.peer.role] }}{% endif %}</small></div>
+      {% if active.is_group %}<button class="btn ghost sm" type="button" onclick="document.getElementById('dlgManage').showModal()">{{ icon('settings', 16) }} Группа</button>{% endif %}
+    </header>
+    <div class="msgs" id="msgs"><p class="muted" style="text-align:center;margin:auto">Загрузка…</p></div>
+    <form class="composer" id="composer" autocomplete="off">
+      <label class="icon-btn" title="Прикрепить фото или файл">{{ icon('paperclip') }}<input type="file" name="file" id="fileIn" hidden></label>
+      <div class="cmp-box">
+        <div class="att" id="att" hidden><span></span><button type="button" title="Убрать">✕</button></div>
+        <textarea name="text" id="msgText" rows="1" placeholder="Сообщение… (Enter — отправить, Shift+Enter — новая строка)"></textarea>
+      </div>
+      <button class="btn" id="sendBtn" title="Отправить">{{ icon('send') }}</button>
+    </form>
+    {% else %}
+    <div class="chat-empty">
+      <span class="ce-ico">{{ icon('chat', 40) }}</span>
+      <h2>Общение команды</h2>
+      <p class="muted">Выберите чат слева, напишите сотруднику напрямую или создайте группу — например «Продажи», «Прокат», «Привоз из Китая».</p>
+      <button class="btn" type="button" onclick="document.getElementById('dlgGroup').showModal()">{{ icon('users', 16) }} Создать группу</button>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+<dialog id="dlgGroup" class="dlg">
+  <form method="post" action="{{ url_for('chat_group_new') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <h2>Новая группа</h2>
+    <div class="f"><label>Название</label><input type="text" name="title" required maxlength="80" placeholder="Например: Продажи"></div>
+    <label class="f" style="margin-top:14px"><span style="font-size:13px;font-weight:600;color:var(--text-2)">Участники</span></label>
+    <div class="pick-list">
+      {% for s in staff %}<label class="pick">{{ avatar(s.full_name, 'sm') }}<span>{{ s.full_name }}</span><input type="checkbox" name="members" value="{{ s.id }}"></label>
+      {% else %}<p class="muted">Сначала добавьте сотрудников в разделе «Сотрудники и доступ».</p>{% endfor %}
+    </div>
+    <div class="dlg-foot"><button class="btn">Создать</button><button class="btn ghost" type="button" onclick="this.closest('dialog').close()">Отмена</button></div>
+  </form>
+</dialog>
+
+{% if active and active.is_group %}
+<dialog id="dlgManage" class="dlg">
+  <h2>{{ active.title }}</h2>
+  {% if active.can_manage %}
+  <form method="post" action="{{ url_for('chat_manage', cid=active.id) }}" style="display:flex;gap:8px;margin-bottom:16px">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="rename">
+    <input type="text" name="title" value="{{ active.title }}" maxlength="80"><button class="btn ghost sm" style="height:44px">Переименовать</button>
+  </form>
+  {% endif %}
+  <h3 style="margin-bottom:8px">Участники · {{ members|length }}</h3>
+  <div class="pick-list" style="max-height:220px">
+    {% for m in members %}
+    <div class="pick">{{ avatar(m.full_name, 'sm') }}<span>{{ m.full_name }}{% if m.id == active.created_by %} <small class="muted">· создатель</small>{% endif %}</span>
+      {% if active.can_manage and m.id != active.created_by %}
+      <form method="post" action="{{ url_for('chat_manage', cid=active.id) }}" data-confirm="Удалить {{ m.full_name }} из группы?">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="remove"><input type="hidden" name="user_id" value="{{ m.id }}">
+        <button class="link-btn" style="color:var(--red)">убрать</button></form>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if active.can_manage %}
+  {% set rest = staff|rejectattr('id', 'in', member_ids)|list %}
+  {% if rest %}
+  <form method="post" action="{{ url_for('chat_manage', cid=active.id) }}" style="margin-top:16px">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="add">
+    <h3 style="margin-bottom:8px">Добавить сотрудников</h3>
+    <div class="pick-list" style="max-height:180px">
+      {% for s in rest %}<label class="pick">{{ avatar(s.full_name, 'sm') }}<span>{{ s.full_name }}</span><input type="checkbox" name="members" value="{{ s.id }}"></label>{% endfor %}
+    </div>
+    <button class="btn sm" style="margin-top:10px">{{ icon('user-plus', 16) }} Добавить</button>
+  </form>
+  {% endif %}
+  {% endif %}
+  <div class="dlg-foot">
+    <form method="post" action="{{ url_for('chat_manage', cid=active.id) }}" data-confirm="Выйти из группы?"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="leave"><button class="btn ghost sm">Выйти из группы</button></form>
+    {% if active.can_manage %}<form method="post" action="{{ url_for('chat_manage', cid=active.id) }}" data-confirm="Удалить группу и всю переписку?"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="delete"><button class="btn danger sm">Удалить группу</button></form>{% endif %}
+    <span style="flex:1"></span><button class="btn ghost sm" type="button" onclick="this.closest('dialog').close()">Закрыть</button>
+  </div>
+</dialog>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}<script>
+(function () {
+  const app = document.getElementById('chatApp');
+  const filter = document.getElementById('chatFilter');
+  filter.addEventListener('input', () => { const v = filter.value.trim().toLowerCase();
+    document.querySelectorAll('.chat-item').forEach(a => a.hidden = v && !a.dataset.s.includes(v)); });
+  window.addEventListener('chat-unread', e => {
+    document.querySelectorAll('.chat-item[data-cid]').forEach(a => { const n = e.detail.chats[a.dataset.cid] || 0;
+      if (a.dataset.cid === app.dataset.cid) return; const em = a.querySelector('em'); em.textContent = n; em.hidden = !n; });
+  });
+  if (!app.dataset.cid) return;
+
+  const box = document.getElementById('msgs'), form = document.getElementById('composer'), ta = document.getElementById('msgText');
+  const fileIn = document.getElementById('fileIn'), att = document.getElementById('att'), isGroup = app.dataset.group === '1';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const pad = n => String(n).padStart(2, '0');
+  const isoD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const dayLabel = d => { const t = new Date(), y = new Date(); y.setDate(t.getDate() - 1);
+    if (d === isoD(t)) return 'Сегодня'; if (d === isoD(y)) return 'Вчера'; const [a, b, c] = d.split('-'); return `${c}.${b}.${a}`; };
+  let last = 0, lastDate = null, lastAuthor = null, first = true, busy = false;
+
+  function bubble(m) {
+    let h = '';
+    if (m.date !== lastDate) { h += `<div class="day-sep"><span>${dayLabel(m.date)}</span></div>`; lastDate = m.date; lastAuthor = null; }
+    if (m.system) { lastAuthor = null; return h + `<div class="msg-sys">${esc(m.text)} · ${m.time}</div>`; }
+    const cont = lastAuthor === m.user_id; lastAuthor = m.user_id;
+    const av = m.mine ? '' : `<span class="msg-av">${cont ? '' : (m.photo ? `<img class="avatar sm" src="${m.photo}">` : `<span class="avatar sm">${esc(m.initials)}</span>`)}</span>`;
+    let body = '';
+    if (isGroup && !m.mine && !cont) body += `<b class="msg-a">${esc(m.author)}</b>`;
+    if (m.file) body += m.is_image ? `<a href="${m.file}" target="_blank"><img class="msg-img" src="${m.file}" alt=""></a>`
+                                   : `<a class="msg-file" href="${m.file}" target="_blank" download="${esc(m.file_name)}">📎 ${esc(m.file_name)}</a>`;
+    if (m.text) body += `<div class="msg-t">${linkify(m.text)}</div>`;
+    return h + `<div class="msg ${m.mine ? 'mine' : ''} ${cont ? 'cont' : ''}">${av}<div class="msg-b">${body}<small>${m.time}</small></div></div>`;
+  }
+  function add(list) {
+    if (!list.length) { if (first) { box.innerHTML = '<p class="muted" style="text-align:center;margin:auto">Сообщений пока нет — напишите первым</p>'; first = false; } return; }
+    const near = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+    if (first) box.innerHTML = '';
+    else if (box.querySelector('p.muted')) box.innerHTML = '';
+    box.insertAdjacentHTML('beforeend', list.filter(m => m.id > last).map(bubble).join(''));
+    last = Math.max(last, ...list.map(m => m.id));
+    if (first || near || list.some(m => m.mine)) box.scrollTop = box.scrollHeight;
+    box.querySelectorAll('img.msg-img').forEach(i => i.onload = () => { if (first || near) box.scrollTop = box.scrollHeight; });
+    first = false;
+  }
+  async function poll() {
+    if (busy) return; busy = true;
+    try { const r = await fetch(app.dataset.msgs + '?after=' + last); if (r.ok) add(await r.json()); } catch (e) {}
+    busy = false;
+  }
+  poll(); setInterval(poll, 2500);
+
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'; };
+  ta.addEventListener('input', grow);
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  fileIn.addEventListener('change', () => { const f = fileIn.files[0]; att.hidden = !f; if (f) att.querySelector('span').textContent = '📎 ' + f.name; ta.focus(); });
+  att.querySelector('button').onclick = () => { fileIn.value = ''; att.hidden = true; };
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!ta.value.trim() && !fileIn.files.length) return;
+    const fd = new FormData(form), btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    try {
+      const r = await fetch(app.dataset.send, { method: 'POST', headers: { 'X-CSRF': CRM.csrf }, body: fd });
+      const d = await r.json();
+      if (!r.ok) { alert(d.error || 'Не удалось отправить'); return; }
+      ta.value = ''; grow(); fileIn.value = ''; att.hidden = true;
+      while (busy) await new Promise(res => setTimeout(res, 50));
+      add([d]);
+    } catch (err) { alert('Нет связи с CRM'); }
+    finally { btn.disabled = false; ta.focus(); }
+  });
+  ta.focus();
+})();
+</script>{% endblock %}

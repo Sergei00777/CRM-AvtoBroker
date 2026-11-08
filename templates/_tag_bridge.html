@@ -1,0 +1,31 @@
+<script>
+/* CRM → ценник: подставляем авто со склада и телефон компании */
+(function () {
+  var state = {{ state|tojson }}, phone = {{ phone|tojson }};
+  try {
+    if (state) localStorage.setItem({{ ls_cur|tojson }}, JSON.stringify(state));
+    var keep = JSON.parse(localStorage.getItem({{ ls_keep|tojson }}) || '{}');
+    /* убрать ссылки CHI AUTO, если они уже запомнились в этом браузере */
+    var old = /chi-auto|CHIAUTO|ivmr0EtUM8/i, fix = { site: 'автоброкер38.рф', siteUrl: 'https://xn--38-6kceet8a4abtdr.xn--p1ai/',
+      tg: 'https://t.me/AvtoBroker38', max: '', maxCap: 'Пишите нам<br>в MAX' };
+    var changed = false;
+    Object.keys(fix).forEach(function (k) { if (keep[k] && old.test(keep[k])) { keep[k] = fix[k]; changed = true; } });
+    if (keep.maxCap && /Наш канал в MAX/.test(keep.maxCap)) { keep.maxCap = fix.maxCap; changed = true; }
+    if (changed) localStorage.setItem({{ ls_keep|tojson }}, JSON.stringify(keep));
+    if (!keep.phone && phone) { keep.phone = phone; localStorage.setItem({{ ls_keep|tojson }}, JSON.stringify(keep)); }
+  } catch (e) {}
+  document.addEventListener('DOMContentLoaded', function () {
+    var a = document.createElement('a');
+    a.href = {{ back|tojson }};
+    a.className = 'crm-back';
+    a.textContent = {{ ('← ' ~ (car if car else 'Ценники CRM'))|tojson }};
+    document.body.appendChild(a);
+  });
+})();
+</script>
+<style>
+.crm-back { position: fixed; top: 12px; right: 16px; z-index: 60; background: #141B25; color: #fff; text-decoration: none;
+  font: 600 13px "Segoe UI", system-ui, sans-serif; padding: 8px 14px; border-radius: 9px; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.crm-back:hover { background: #C8102E; }
+@media print { .crm-back { display: none !important; } }
+</style>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><title>{{ d.title }}</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+<style>
+  @page { size: A4; margin: 14mm 14mm 14mm 18mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #E7E9EC; font: 10.5pt/1.45 "Times New Roman", Times, serif; color: #111; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; gap: 10px; align-items: center; padding: 10px 18px; background: #141B25; color: #fff; font: 14px "Segoe UI", system-ui, sans-serif; }
+  .bar a, .bar button { font: inherit; color: #fff; background: #2A3544; border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; text-decoration: none; }
+  .bar button.p { background: #C8102E; }
+  .bar span { flex: 1; color: #9AA6B6; }
+  .sheet { width: 210mm; min-height: 297mm; margin: 18px auto; padding: 14mm 14mm 14mm 18mm; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 2mm; text-transform: uppercase; }
+  .sub { text-align: center; margin-bottom: 5mm; }
+  .row { display: flex; justify-content: space-between; margin-bottom: 4mm; }
+  h2 { font-size: 11pt; margin: 4mm 0 1.5mm; }
+  p { margin: 0 0 1.6mm; text-align: justify; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 3mm; }
+  td, th { border: 1px solid #333; padding: 1.4mm 2mm; vertical-align: top; text-align: left; }
+  th { background: #F1F1F1; width: 38%; font-weight: normal; }
+  [data-f] { background: #FFF8D6; border-bottom: 1px dotted #B88A00; padding: 0 2px; min-width: 20mm; display: inline-block; outline: none; }
+  [data-f]:focus { background: #FFEFA6; }
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 8mm; }
+  .sign div { border-top: 1px solid #333; padding-top: 1.5mm; font-size: 9.5pt; }
+  .small { font-size: 9pt; color: #333; }
+  .chk span { display: inline-block; margin-right: 6mm; }
+  @media print { body { background: #fff; } .bar { display: none; } .sheet { margin: 0; padding: 0; box-shadow: none; width: auto; min-height: 0; }
+    [data-f] { background: none; border-bottom: 0; } }
+</style>
+</head>
+<body>
+{% macro F(key, default="") -%}<span data-f="{{ key }}" contenteditable="true">{{ saved.get(key, default) }}</span>{%- endmacro %}
+{% set car = (k.brand ~ ' ' ~ (k.model or '')) if k else '' %}
+<div class="bar">
+  <a href="{{ url_for('client_view', cid=c.id) if c else url_for('documents') }}">← Назад в CRM</a>
+  <span>Жёлтые поля можно редактировать прямо на листе. «Сохранить» — запишет правки в CRM.</span>
+  {% if can_edit %}<button type="button" onclick="saveDoc()">Сохранить</button>{% endif %}
+  <button type="button" class="p" onclick="window.print()">Печать / PDF</button>
+</div>
+<form id="saveForm" method="post" action="{{ url_for('document_meta', did=d.id) }}" hidden><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="save_print" value="1"></form>
+
+<div class="sheet">
+{% if d.kind == 'dogovor_prokata' %}
+  <h1>Договор проката автомобиля № {{ F('num', d.number) }}</h1>
+  <div class="row"><span>{{ F('city', 'г. ' ~ s.company_city) }}</span><span>{{ F('date', (r.start_date if r else today_iso)|dt) }}</span></div>
+  <p>{{ F('lessor', s.company_legal) }}, именуемый в дальнейшем «Арендодатель», с одной стороны, и {{ F('client', c.full_name if c else '') }}, именуемый(ая) в дальнейшем «Арендатор», с другой стороны, заключили настоящий договор о нижеследующем:</p>
+  <h2>1. Предмет договора</h2>
+  <p>1.1. Арендодатель предоставляет Арендатору во временное владение и пользование без предоставления услуг по управлению легковой автомобиль:</p>
+  <table>
+    <tr><th>Марка, модель</th><td>{{ F('car', car) }}</td></tr>
+    <tr><th>Год выпуска</th><td>{{ F('year', k.year if k and k.year else '') }}</td></tr>
+    <tr><th>Государственный номер</th><td>{{ F('plate', k.plate if k and k.plate else '') }}</td></tr>
+    <tr><th>VIN</th><td>{{ F('vin', k.vin if k and k.vin else '') }}</td></tr>
+    <tr><th>Цвет</th><td>{{ F('color', k.color if k and k.color else '') }}</td></tr>
+  </table>
+  <h2>2. Срок аренды и стоимость</h2>
+  <table>
+    <tr><th>Начало аренды</th><td>{{ F('start', r.start_date|dt if r else '') }}</td></tr>
+    <tr><th>Окончание аренды</th><td>{{ F('end', r.end_date|dt if r else '') }}</td></tr>
+    <tr><th>Количество суток</th><td>{{ F('days', days or '') }}</td></tr>
+    <tr><th>Стоимость аренды в сутки</th><td>{{ F('price', r.price_day|money if r else '') }}</td></tr>
+    <tr><th>Итого к оплате</th><td>{{ F('total', r.total|money if r else '') }}</td></tr>
+    <tr><th>Залог (возвратный)</th><td>{{ F('deposit', r.deposit|money if r else '') }}</td></tr>
+    <tr><th>Пробег при выдаче, км</th><td>{{ F('km_out', r.mileage_out|num if r and r.mileage_out else (k.mileage|num if k and k.mileage else '')) }}</td></tr>
+  </table>
+  <h2>3. Права и обязанности сторон</h2>
+  <p>3.1. Арендодатель передаёт автомобиль в исправном техническом состоянии, с документами (СТС, полис ОСАГО) по акту приёма-передачи.</p>
+  <p>3.2. Арендатор обязуется использовать автомобиль по назначению, соблюдать ПДД, не передавать управление третьим лицам, не использовать автомобиль для такси, обучения вождению, участия в соревнованиях, буксировки.</p>
+  <p>3.3. Арендатор возвращает автомобиль в срок, в чистом виде, с тем же уровнем топлива, что и при выдаче. За каждый час просрочки возврата начисляется плата в размере 1/12 суточной стоимости аренды.</p>
+  <p>3.4. Арендатор несёт полную материальную ответственность за повреждение, утрату автомобиля, а также оплачивает штрафы ГИБДД, полученные в период аренды.</p>
+  <h2>4. Залог</h2>
+  <p>4.1. Залог возвращается Арендатору при возврате автомобиля без повреждений и при отсутствии задолженности. Из залога могут быть удержаны штрафы, расходы на мойку, топливо и устранение повреждений.</p>
+  <h2>5. Прочие условия</h2>
+  <p>5.1. Договор вступает в силу с момента подписания и действует до полного исполнения обязательств. Споры решаются путём переговоров, а при недостижении согласия — в суде по месту нахождения Арендодателя.</p>
+  <p>5.2. Договор составлен в двух экземплярах, имеющих одинаковую юридическую силу, по одному для каждой из сторон.</p>
+  <h2>6. Реквизиты и подписи сторон</h2>
+  <table>
+    <tr><th>Арендодатель</th><td>{{ F('lessor2', s.company_legal) }}<br><span class="small">{{ F('req', s.company_requisites or 'ИНН, ОГРНИП, адрес, телефон') }}</span></td></tr>
+    <tr><th>Арендатор</th><td>{{ F('client2', c.full_name if c else '') }}<br><span class="small">Паспорт: {{ F('pass', c.passport if c and c.passport else '') }}<br>
+      Вод. удостоверение: {{ F('lic', c.license if c and c.license else '') }}<br>Телефон: {{ F('phone', c.phone if c and c.phone else '') }}</span></td></tr>
+  </table>
+  <div class="sign"><div>Арендодатель _____________ / {{ F('sign1', signer) }}</div><div>Арендатор _____________ / {{ F('sign2', c.full_name|short if c else '') }}</div></div>
+
+{% else %}
+  <h1>Акт приёма-передачи автомобиля № {{ F('num', d.number) }}</h1>
+  <div class="row"><span>{{ F('city', 'г. ' ~ s.company_city) }}</span><span>{{ F('date', (r.start_date if r else today_iso)|dt) }}</span></div>
+  <p>{{ F('from', s.company_legal) }} («Передающая сторона») передал(а), а {{ F('to', c.full_name if c else '') }} («Принимающая сторона») принял(а) следующий автомобиль{{ F('basis', ' по договору проката № ' ~ d.number if r else '') }}:</p>
+  <table>
+    <tr><th>Марка, модель</th><td>{{ F('car', car) }}</td></tr>
+    <tr><th>Год выпуска</th><td>{{ F('year', k.year if k and k.year else '') }}</td></tr>
+    <tr><th>Государственный номер</th><td>{{ F('plate', k.plate if k and k.plate else '') }}</td></tr>
+    <tr><th>VIN / № кузова</th><td>{{ F('vin', k.vin if k and k.vin else '') }}</td></tr>
+    <tr><th>Цвет</th><td>{{ F('color', k.color if k and k.color else '') }}</td></tr>
+    <tr><th>Пробег, км</th><td>{{ F('km', r.mileage_out|num if r and r.mileage_out else (k.mileage|num if k and k.mileage else '')) }}</td></tr>
+    <tr><th>Уровень топлива</th><td>{{ F('fuel', '') }}</td></tr>
+  </table>
+  <h2>Вместе с автомобилем переданы</h2>
+  <p class="chk"><span>☐ СТС</span><span>☐ ПТС / ЭПТС</span><span>☐ Полис ОСАГО</span><span>☐ Ключи: {{ F('keys', '2') }} шт.</span><span>☐ Запасное колесо</span><span>☐ Домкрат</span><span>☐ Аптечка</span><span>☐ Знак аварийной остановки</span><span>☐ Огнетушитель</span><span>☐ Коврики</span></p>
+  <h2>Состояние автомобиля, повреждения</h2>
+  <p>{{ F('damage', 'Видимых повреждений кузова, салона и стёкол нет.') }}</p>
+  <h2>Замечания</h2>
+  <p>{{ F('notes', '') }}</p>
+  <p style="margin-top:4mm">Принимающая сторона осмотрела автомобиль, претензий к его техническому состоянию, комплектности и внешнему виду не имеет. Акт составлен в двух экземплярах.</p>
+  <div class="sign"><div>Передал _____________ / {{ F('sign1', signer) }}</div><div>Принял _____________ / {{ F('sign2', c.full_name|short if c else '') }}</div></div>
+  <div class="sign" style="margin-top:10mm"><div>Дата и время передачи: {{ F('dt', '') }}</div><div></div></div>
+{% endif %}
+</div>
+<script>
+function saveDoc() {
+  const f = document.getElementById('saveForm');
+  document.querySelectorAll('[data-f]').forEach(el => {
+    const i = document.createElement('input'); i.type = 'hidden'; i.name = 'f_' + el.dataset.f; i.value = el.innerText.trim(); f.appendChild(i);
+  });
+  f.submit();
+}
+</script>
+</body>
+</html>

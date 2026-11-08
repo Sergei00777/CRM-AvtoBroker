@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, status_badge, empty %}
+{% block title %}Прокат{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Прокат</h1><p>График занятости автопарка. Нажмите на свободную клетку, чтобы оформить аренду на этот день.</p></div>
+  {% if can_edit %}<div class="actions"><a class="btn ghost" href="{{ url_for('car_new', view='fleet') }}">{{ icon('car') }} Авто в автопарк</a>
+    <a class="btn" href="{{ url_for('rental_new') }}">{{ icon('plus') }} Новая аренда</a></div>{% endif %}
+</div>
+
+<section class="card mb">
+  <div class="card-h">
+    <a class="icon-btn sm" href="{{ url_for('rentals', **{'from': prev, 'days': span}) }}">{{ icon('left', 16) }}</a>
+    <a class="btn ghost sm" href="{{ url_for('rentals', days=span) }}">Сегодня</a>
+    <a class="icon-btn sm" href="{{ url_for('rentals', **{'from': next, 'days': span}) }}">{{ icon('right', 16) }}</a>
+    <h2 style="margin-left:8px">{{ days[0]|dt('human') }} — {{ days[-1]|dt('human') }}</h2>
+    <div class="tabs more" style="margin-left:auto">
+      {% for n in (14, 21, 31) %}<a href="{{ url_for('rentals', **{'from': start.isoformat(), 'days': n}) }}" class="{{ 'on' if span == n }}">{{ n }} дн.</a>{% endfor %}
+    </div>
+  </div>
+  {% if fleet %}
+  <div class="gantt"><table>
+    <thead><tr><th class="car">Автомобиль</th>
+      {% for d in days %}<th class="d {{ 'we' if d.weekday() >= 5 }} {{ 'now' if d == t }}">{{ ['пн','вт','ср','чт','пт','сб','вс'][d.weekday()] }}<b>{{ d.day }}</b></th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for k in fleet %}
+      <tr><td class="car"><a href="{{ url_for('car_view', car_id=k.id) }}" style="color:var(--text);font-weight:600">{{ k.brand }} {{ k.model or '' }}</a><br>
+        <small class="muted">{% if k.plate %}<span class="plate" style="font-size:11px">{{ k.plate }}</span> {% endif %}{{ k.rent_day_price|money }}/сут</small></td>
+        <td class="lane" colspan="{{ days|length }}">
+          <div class="cells" style="grid-template-columns:repeat({{ days|length }},1fr)">
+            {% for d in days %}<a {% if can_edit %}href="{{ url_for('rental_new', car_id=k.id, start=d.isoformat()) }}"{% endif %} class="{{ 'now' if d == t }}" title="Оформить аренду с {{ d|dt }}"></a>{% endfor %}
+          </div>
+          {% for b in bars.get(k.id, []) %}
+            <a class="gbar s-{{ b.r.status }}" href="{{ url_for('rental_edit', rid=b.r.id) }}" style="left:calc({{ b.left }} / {{ days|length }} * 100% + 2px);width:calc({{ b.width }} / {{ days|length }} * 100% - 4px)"
+               title="{{ b.r.client }} · {{ b.r.start_date|dt }}–{{ b.r.end_date|dt }} · {{ b.r.total|money }}">{{ b.r.client.split(' ')[0] }} <small>{{ b.r.start_date|dt('short') }}–{{ b.r.end_date|dt('short') }} · {{ b.r.total|money }}</small></a>
+          {% endfor %}
+        </td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  <div class="card-b" style="padding-top:14px"><div class="legend"><span><i style="background:#E8A23A"></i>Бронь</span><span><i style="background:#22A257"></i>Активна</span><span><i style="background:#9EA8B6"></i>Завершена</span></div></div>
+  {% else %}
+    {{ empty('В автопарке нет машин. Добавьте авто с типом «Прокат» или укажите цену аренды за сутки', 'car', 'Добавить авто' if can_edit, url_for('car_new', view='fleet')) }}
+  {% endif %}
+</section>
+
+<div class="toolbar">
+  <h2>Аренды</h2><div class="grow"></div>
+  <div class="tabs">
+    <a href="{{ url_for('rentals') }}" class="{{ 'on' if not status }}">Текущие</a>
+    {% for s in statuses %}<a href="{{ url_for('rentals', status=s) }}" class="{{ 'on' if status == s }}">{{ s }}</a>{% endfor %}
+  </div>
+</div>
+<div class="card">
+  {% if lst %}
+  <div class="table-wrap"><table class="t">
+    <thead><tr><th>Авто</th><th>Клиент</th><th>Период</th><th>Статус</th><th class="r">Сутки</th><th class="r">Сумма</th><th class="r">Оплачено</th><th class="r">Залог</th><th></th></tr></thead>
+    <tbody>{% for r in lst %}
+      <tr data-href="{{ url_for('rental_edit', rid=r.id) }}">
+        <td><b>{{ r.brand }} {{ r.model or '' }}</b> {% if r.plate %}<span class="plate">{{ r.plate }}</span>{% endif %}</td>
+        <td>{{ r.client }}<br><small class="muted">{{ r.phone or '' }}</small></td>
+        <td class="nowrap">{{ r.start_date|dt }} — {{ r.end_date|dt }}{% if r.status == 'Активна' and r.end_date < today_iso %}<br><small class="red">просрочен возврат</small>{% endif %}</td>
+        <td>{{ status_badge(r.status) }}</td>
+        <td class="r money">{{ r.price_day|money }}</td>
+        <td class="r money"><b>{{ r.total|money }}</b></td>
+        <td class="r money {{ 'red' if (r.paid or 0) < (r.total or 0) }}">{{ r.paid|money }}</td>
+        <td class="r money">{{ r.deposit|money }}</td>
+        <td class="r"><a class="btn ghost xs" href="{{ url_for('document_new', kind='dogovor_prokata', rental_id=r.id) }}">{{ icon('doc', 14) }} Договор</a></td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}{{ empty('Аренд нет', 'key') }}{% endif %}
+</div>
+{% endblock %}

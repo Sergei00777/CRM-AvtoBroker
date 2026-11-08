@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar, temp_badge, kind_chip, stage_badge, status_badge, empty %}
+{% block title %}{{ c.full_name }}{% endblock %}
+{% block crumbs %}<a href="{{ url_for('clients') }}" style="color:var(--text-3)">Клиенты</a> / {{ c.full_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="profile">
+    {{ avatar(c.full_name, 'lg') }}
+    <div>
+      <h1>{{ c.full_name }}</h1>
+      <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px">{{ temp_badge(c.temp) }}
+        {% if c.phone %}<a href="{{ c.phone|phone_link }}">{{ c.phone }}</a>{% endif %}
+        <span class="muted">· клиент с {{ c.created_at|dt }}{% if c.source %} · {{ c.source }}{% endif %}</span></p>
+    </div>
+  </div>
+  {% if can_edit %}
+  <div class="actions">
+    <a class="btn ghost sm" href="{{ url_for('client_edit', cid=c.id) }}">{{ icon('edit', 16) }} Изменить</a>
+    <a class="btn ghost sm" href="{{ url_for('task_new', client_id=c.id) }}">{{ icon('task', 16) }} Задача</a>
+    <a class="btn ghost sm" href="{{ url_for('event_new', client_id=c.id) }}">{{ icon('calendar', 16) }} Встреча</a>
+    <a class="btn sm" href="{{ url_for('deal_new', client_id=c.id) }}">{{ icon('plus', 16) }} Сделка</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid g-main">
+  <div>
+    <section class="card mb">
+      <div class="card-h"><h2>Сделки <span class="cnt">{{ deals|length }}</span></h2></div>
+      <div class="card-b">
+        {% for d in deals %}
+        <div class="deal-row">
+          <div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">{{ kind_chip(d.kind) }} {{ stage_badge(d.stage, STAGE_NAMES[d.stage]) }}</div>
+            <div style="font-weight:700;margin-top:8px">{{ d.car_wish or d.title }}</div>
+            <div class="row-s">Бюджет {{ d.budget|money }}{% if d.fee %} · доход {{ d.fee|money }}{% endif %}{% if d.deadline %} · срок {{ d.deadline|dt }}{% endif %} · {{ d.manager or '' }}</div>
+            {% if can_edit %}
+            <div class="stagebar" title="Нажмите, чтобы перевести на этап">
+              {% for code, name in stages %}
+              <form method="post" action="{{ url_for('deal_stage', did=d.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="stage" value="{{ code }}">
+                <button class="{{ 'on' if loop.index0 <= (stages|map(attribute=0)|list).index(d.stage) and d.stage != 'lost' }}" title="{{ name }}" style="{{ 'background:var(--text-3)' if code == 'lost' and d.stage == 'lost' }}"></button></form>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            {% if can_edit %}<a class="btn ghost xs" href="{{ url_for('deal_edit', did=d.id) }}">{{ icon('edit', 14) }} Открыть</a>
+            <a class="btn ghost xs" href="{{ url_for('document_new', kind='dogovor', deal_id=d.id) }}">{{ icon('doc', 14) }} Договор</a>{% endif %}
+          </div>
+        </div>
+        {% else %}{{ empty('Сделок пока нет', 'funnel', 'Создать сделку' if can_edit, url_for('deal_new', client_id=c.id)) }}{% endfor %}
+      </div>
+    </section>
+
+    <section class="card mb" id="timeline">
+      <div class="card-h"><h2>История и комментарии</h2></div>
+      <div class="card-b">
+        {% if can_edit %}
+        <form method="post" action="{{ url_for('client_note', cid=c.id) }}" class="note-form" style="margin-bottom:12px">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <textarea name="text" placeholder="Комментарий, итог звонка, договорённость…"></textarea>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+            <div class="seg">
+              <label><input type="radio" name="kind" value="note" checked><span>💬 Заметка</span></label>
+              <label><input type="radio" name="kind" value="call"><span>☎ Звонок</span></label>
+              <label><input type="radio" name="kind" value="meet"><span>🤝 Встреча</span></label>
+            </div>
+            <span class="muted" style="margin-left:auto">Перезвонить</span>
+            <input type="date" name="next_call" value="{{ c.next_call or '' }}" style="width:170px;height:40px">
+            <button class="btn sm">Добавить</button>
+          </div>
+        </form>
+        {% endif %}
+        <div class="timeline">
+          {% for a in acts %}
+          <div class="tl {{ a.kind }}">
+            <span class="tdot">{{ icon({'note':'message','call':'phone','meet':'handshake'}.get(a.kind, 'clock'), 15) }}</span>
+            <div class="tb"><p>{{ a.text }}</p><small>{{ a.author or 'Система' }} · {{ a.created_at|dt('time') }}</small></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {% if rentals %}
+    <section class="card mb">
+      <div class="card-h"><h2>Прокат <span class="cnt">{{ rentals|length }}</span></h2></div>
+      <div class="table-wrap"><table class="t"><thead><tr><th>Авто</th><th>Период</th><th>Статус</th><th class="r">Сумма</th></tr></thead><tbody>
+        {% for r in rentals %}<tr data-href="{{ url_for('rental_edit', rid=r.id) }}"><td><b>{{ r.brand }} {{ r.model or '' }}</b> <span class="plate">{{ r.plate or '' }}</span></td>
+          <td>{{ r.start_date|dt }} — {{ r.end_date|dt }}</td><td>{{ status_badge(r.status) }}</td><td class="r money">{{ r.total|money }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div>
+    <section class="card mb">
+      <div class="card-h"><h2>Контакты</h2></div>
+      <div class="card-b contact-list">
+        <div><span>Телефон</span><b>{% if c.phone %}<a href="{{ c.phone|phone_link }}">{{ c.phone }}</a>{% else %}—{% endif %}{% if c.phone2 %}<br><a href="{{ c.phone2|phone_link }}">{{ c.phone2 }}</a>{% endif %}</b></div>
+        <div><span>Email</span><b>{{ c.email or '—' }}</b></div>
+        <div><span>Мессенджер</span><b>{{ c.messenger or '—' }}</b></div>
+        <div><span>Город</span><b>{{ c.city or '—' }}</b></div>
+        <div><span>Менеджер</span><b>{{ c.manager or '—' }}</b></div>
+        <div><span>Перезвонить</span><b class="{{ 'red' if c.next_call and c.next_call < today_iso }}">{{ c.next_call|dt if c.next_call else '—' }}</b></div>
+        {% if c.passport %}<div><span>Паспорт</span><b>{{ c.passport }}</b></div>{% endif %}
+        {% if c.license %}<div><span>Вод. удост.</span><b>{{ c.license }}</b></div>{% endif %}
+        {% if c.notes %}<div><span>Заметки</span><b style="font-weight:400;white-space:pre-wrap">{{ c.notes }}</b></div>{% endif %}
+      </div>
+    </section>
+
+    <section class="card mb">
+      <div class="card-h"><h2>Задачи и встречи</h2>{% if can_edit %}<a class="more" href="{{ url_for('task_new', client_id=c.id) }}">+ Задача</a>{% endif %}</div>
+      <div class="card-b rows">
+        {% for e in events %}<a class="row" href="{{ url_for('event_edit', eid=e.id) }}"><span class="dot" style="background:var(--violet)"></span><div class="row-m"><div class="row-t">{{ e.title }}</div><div class="row-s">{{ e.kind }} · {{ e.date|dt }} {{ e.time or '' }}</div></div></a>{% endfor %}
+        {% for t in tasks %}<a class="row" href="{{ url_for('task_edit', tid=t.id) }}" style="{{ 'opacity:.5' if t.status == 'Выполнена' }}"><span class="dot {{ t.priority }}"></span><div class="row-m"><div class="row-t">{{ t.title }}</div><div class="row-s">{{ t.status }} · {{ t.due_date|dt if t.due_date else 'без срока' }}</div></div></a>{% endfor %}
+        {% if not tasks and not events %}<p class="muted" style="margin:0">Нет задач</p>{% endif %}
+      </div>
+    </section>
+
+    <section class="card mb">
+      <div class="card-h"><h2>Документы</h2></div>
+      <div class="card-b rows">
+        {% for d in docs %}<a class="row" href="{{ url_for('document_view', did=d.id) }}"><span style="color:var(--red)">{{ icon('doc') }}</span><div class="row-m"><div class="row-t">{{ d.title }}</div><div class="row-s">{{ d.updated_at|dt('time') }}</div></div></a>{% endfor %}
+        {% if can_edit %}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px">
+          {% for code, k in DOC_KINDS.items() %}<a class="btn ghost xs" href="{{ url_for('document_new', kind=code, client_id=c.id) }}">+ {{ k[0].split(' ')[0] }} {{ k[0].split(' ')[1] if code != 'dogovor' else 'на услуги' }}</a>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if cars %}
+    <section class="card mb">
+      <div class="card-h"><h2>Авто клиента</h2></div>
+      <div class="card-b rows">{% for k in cars %}<a class="row" href="{{ url_for('car_view', car_id=k.id) }}">{{ icon('car') }}<div class="row-m"><div class="row-t">{{ car_title(k) }}</div><div class="row-s">{{ k.origin }} · {{ k.status }}</div></div></a>{% endfor %}</div>
+    </section>
+    {% endif %}
+
+    {% if user.role == 'admin' %}
+    <form method="post" action="{{ url_for('client_delete', cid=c.id) }}" data-confirm="Удалить клиента и все его сделки, задачи и историю?">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn danger sm block">{{ icon('trash', 16) }} Удалить клиента</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

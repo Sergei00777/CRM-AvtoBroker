@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Акт осмотра автомобиля — АвтоБрокер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   АКТ ОСМОТРА АВТОМОБИЛЯ — бланк для печати, A4, 2 листа
+   Стиль «Графит» сайта АвтоБрокер
+   ========================================================= */
+:root {
+    --ink: #16191e;
+    --ink-2: #20252c;
+    --steel: #5c636e;
+    --line: #b9bec6;
+    --line-soft: #d9dce1;
+    --mist: #f1f2f4;
+    --signal: #c8102e;
+    --font: 'Onest', 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: #e7e9ec; }
+body {
+    font-family: var(--font);
+    color: var(--ink);
+    font-size: 8.4pt;
+    line-height: 1.25;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* ---------- Лист ---------- */
+.sheet {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    margin: 10mm auto;
+    padding: 9mm 10mm 8mm;
+    background: #fff;
+    box-shadow: 0 6px 30px rgba(22,25,30,.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+@page { size: A4; margin: 0; }
+@media print {
+    html { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    .sheet:last-child { page-break-after: auto; break-after: auto; }
+    .toolbar { display: none !important; }
+}
+
+/* ---------- Панель печати (только на экране) ---------- */
+.toolbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; justify-content: center; gap: 10px; align-items: center;
+    padding: 10px 16px;
+    background: var(--ink); color: #c4c9d1;
+    font: 500 14px var(--font);
+}
+.toolbar button {
+    font: 600 14px var(--font);
+    background: var(--signal); color: #fff; border: 0;
+    padding: 9px 18px; border-radius: 6px; cursor: pointer;
+}
+.toolbar button:hover { background: #a00d25; }
+
+/* ---------- Шапка ---------- */
+.head {
+    display: flex; align-items: center; justify-content: space-between; gap: 6mm;
+    padding-bottom: 3.5mm;
+    border-bottom: 0.6mm solid var(--ink);
+    margin-bottom: 3.5mm;
+}
+.brand { display: flex; align-items: center; gap: 2.6mm; }
+.mark {
+    width: 11mm; height: 11mm; border-radius: 2mm;
+    background: var(--signal); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 17pt; position: relative; letter-spacing: -.04em;
+}
+.mark::after {
+    content: ''; position: absolute; left: 2.2mm; right: 2.2mm; bottom: 1.7mm;
+    height: .45mm; border-radius: 1mm; background: rgba(255,255,255,.6);
+}
+.brand b { display: block; font-size: 12pt; font-weight: 800; letter-spacing: .02em; line-height: 1; }
+.brand span { display: block; font-size: 7.4pt; color: var(--steel); margin-top: .8mm; }
+.title { text-align: right; }
+.title h1 { font-size: 14.5pt; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+.title .meta { display: flex; gap: 4mm; justify-content: flex-end; margin-top: 1.6mm; font-size: 8pt; color: var(--steel); }
+.title .meta i { display: inline-block; border-bottom: .25mm solid var(--line); min-width: 20mm; height: 3.6mm; font-style: normal; vertical-align: bottom; }
+.title .meta i.s { min-width: 12mm; }
+
+.page-mark { font-size: 7.4pt; color: var(--steel); display: flex; justify-content: space-between; margin-bottom: 3mm; }
+.page-mark b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Секции ---------- */
+.sec { margin-bottom: 3mm; break-inside: avoid; }
+.sec-h {
+    display: flex; align-items: center; gap: 2mm;
+    font-size: 9.6pt; font-weight: 700; letter-spacing: -.01em;
+    padding-bottom: 1.2mm; margin-bottom: 1.8mm;
+    border-bottom: .25mm solid var(--line);
+}
+.sec-h .n {
+    width: 5mm; height: 5mm; border-radius: 50%;
+    background: var(--ink); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 7.6pt; font-weight: 700; flex-shrink: 0;
+}
+.sec-h small { margin-left: auto; font-size: 7pt; font-weight: 400; color: var(--steel); }
+
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+.cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 5mm; }
+
+/* ---------- Поля ---------- */
+.fields { display: grid; gap: 1.6mm 3mm; }
+.f { display: flex; align-items: flex-end; gap: 1.5mm; min-width: 0; }
+.f label { font-size: 7.2pt; color: var(--steel); white-space: nowrap; }
+.f .ln { flex: 1; border-bottom: .25mm solid var(--line); height: 4.6mm; min-width: 6mm; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g2 { grid-template-columns: 2fr 1fr 1fr; }
+
+/* VIN — 17 клеток */
+.vin { display: flex; align-items: center; gap: 2mm; }
+.vin label { font-size: 7.2pt; color: var(--steel); }
+.vin .cells { display: grid; grid-template-columns: repeat(17, 1fr); flex: 1; border: .25mm solid var(--line); border-radius: 1mm; overflow: hidden; }
+.vin .cells span { height: 6mm; border-right: .25mm solid var(--line-soft); }
+.vin .cells span:last-child { border-right: 0; }
+.vin .cells span:nth-child(3), .vin .cells span:nth-child(9) { border-right-color: var(--line); }
+
+/* Чекбоксы и варианты */
+.cb {
+    display: inline-block; width: 3.1mm; height: 3.1mm;
+    border: .25mm solid #7d848e; border-radius: .6mm;
+    vertical-align: -0.5mm; margin-right: 1mm; background: #fff; flex-shrink: 0;
+}
+.opts { display: flex; flex-wrap: wrap; gap: 1mm 3.2mm; align-items: center; }
+.opts span { white-space: nowrap; font-size: 7.8pt; }
+.opt-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 1.3mm 5mm; }
+.opt-grid .opts { gap: 1mm 2.4mm; }
+.opt-grid .opts span { font-size: 7.5pt; }
+.opt-row { display: flex; align-items: center; gap: 2mm; margin-top: 1.4mm; }
+.opt-grid .opt-row { margin-top: 0; }
+.opt-row > label { font-size: 7.2pt; color: var(--steel); white-space: nowrap; min-width: 15mm; }
+.opts { flex-wrap: nowrap; }
+
+/* ---------- Таблицы проверок ---------- */
+table.chk { width: 100%; border-collapse: collapse; }
+table.chk th {
+    font-size: 6.3pt; font-weight: 600; color: var(--steel); text-align: center;
+    padding: 0 0 .6mm; white-space: nowrap;
+}
+table.chk th:first-child { text-align: left; }
+table.chk td {
+    border-bottom: .2mm solid var(--line-soft);
+    height: 4.35mm; padding: 0 1mm 0 0; font-size: 7.6pt; white-space: nowrap; vertical-align: middle;
+}
+table.chk td.c { width: 8.5mm; text-align: center; padding: 0; }
+table.chk td.c .cb { margin: 0; }
+table.chk td.note { width: 24%; border-bottom: .2mm solid var(--line-soft); }
+table.chk tr.grp td {
+    font-size: 7.2pt; font-weight: 700; color: var(--ink);
+    height: 5mm; padding-top: 1.2mm; border-bottom: .25mm solid var(--line);
+}
+table.chk tr.grp td span { font-weight: 400; color: var(--steel); }
+
+/* ---------- Кузов: схема + таблица ЛКП ---------- */
+.body-grid { display: grid; grid-template-columns: 62mm 1fr; gap: 5mm; align-items: start; }
+.car-svg { width: 100%; height: auto; display: block; }
+.legend {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .6mm 3mm;
+    font-size: 6.9pt; color: var(--steel); margin-top: 1.6mm;
+}
+.legend b {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 4.2mm; height: 3.8mm; padding: 0 .6mm; margin-right: 1mm;
+    border-radius: .7mm; background: var(--ink); color: #fff; font-size: 6.6pt; font-weight: 700;
+}
+.lkp-scale {
+    display: flex; margin-top: 2mm; border-radius: 1mm; overflow: hidden; font-size: 6.5pt; text-align: center;
+}
+.lkp-scale div { flex: 1; padding: .8mm .4mm; line-height: 1.15; }
+.lkp-scale div b { display: block; font-size: 7pt; }
+
+table.lkp { width: 100%; border-collapse: collapse; }
+table.lkp th { font-size: 6.8pt; font-weight: 600; color: var(--steel); text-align: left; padding: 0 1mm .8mm 0; white-space: nowrap; }
+table.lkp td { border-bottom: .2mm solid var(--line-soft); height: 4.55mm; font-size: 7.8pt; padding-right: 1mm; }
+table.lkp td.num { width: 5mm; color: var(--steel); font-size: 7pt; font-weight: 600; }
+table.lkp td.w { width: 15mm; border-left: .2mm solid var(--line-soft); }
+table.lkp td.w2 { width: 22mm; border-left: .2mm solid var(--line-soft); }
+
+/* Шины */
+table.tyres { width: 100%; border-collapse: collapse; }
+table.tyres th { font-size: 6.8pt; font-weight: 600; color: var(--steel); text-align: left; padding: 0 1mm .8mm 0; }
+table.tyres td { border-bottom: .2mm solid var(--line-soft); height: 4.8mm; font-size: 7.8pt; white-space: nowrap; }
+table.tyres td + td { border-left: .2mm solid var(--line-soft); }
+
+/* Силовые элементы — компактная сетка */
+.struct { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 4mm; }
+.struct table.chk td.c { width: 5.6mm; }
+
+/* ---------- Итог ---------- */
+.verdict { display: grid; grid-template-columns: 1.05fr 1fr; gap: 5mm; }
+.score { display: flex; gap: 1.6mm; margin-top: 1mm; }
+.score span {
+    width: 8mm; height: 8mm; border: .3mm solid var(--line); border-radius: 1.4mm;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10pt;
+}
+.rec { display: grid; gap: 1.6mm; margin-top: 2.6mm; }
+.rec div { display: flex; align-items: center; gap: 1mm; font-size: 8.2pt; font-weight: 600; }
+.rec div em { font-style: normal; font-weight: 400; color: var(--steel); font-size: 7.4pt; margin-left: 1mm; }
+.money { display: grid; gap: 1.7mm; }
+.money .f label { min-width: 34mm; }
+.money .f { position: relative; }
+.money .f::after { content: '₽'; position: absolute; right: 0; bottom: .6mm; color: var(--steel); font-size: 7.6pt; }
+.money .f input.ln { padding-right: 4mm; }
+
+table.faults { width: 100%; border-collapse: collapse; }
+table.faults th { font-size: 6.8pt; font-weight: 600; color: var(--steel); text-align: left; padding: 0 1mm .8mm 0; }
+table.faults td { border-bottom: .2mm solid var(--line-soft); height: 5mm; font-size: 7.6pt; }
+table.faults td.n { width: 5mm; color: var(--steel); font-weight: 600; }
+table.faults td.p { width: 30mm; border-left: .2mm solid var(--line-soft); }
+table.faults tr.total td { border-bottom: .3mm solid var(--ink); font-weight: 700; }
+
+.notes .ln-row { border-bottom: .25mm solid var(--line); height: 5.4mm; }
+
+.sign { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: auto; padding-top: 3mm; }
+.sign .f label { min-width: 0; }
+.sign small { display: block; font-size: 6.6pt; color: var(--steel); margin-top: .6mm; padding-left: 21mm; }
+
+.foot {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 3mm; padding-top: 2mm;
+    border-top: .25mm solid var(--line);
+    font-size: 7pt; color: var(--steel);
+}
+.foot b { color: var(--ink); font-weight: 600; }
+.foot .road { flex: 1; height: .6mm; margin: 0 4mm; background: repeating-linear-gradient(90deg, var(--signal) 0 5mm, transparent 5mm 8mm); opacity: .85; }
+
+.hint { font-size: 6.8pt; color: var(--steel); }
+
+/* ===== Режим заполнения ===== */
+input[type=text] {
+    font: inherit; color: #0b2a6f; background: transparent; border: 0; outline: none;
+    width: 100%; height: 100%; padding: 0 .8mm; font-size: 8pt; font-weight: 500;
+}
+.f input.ln { flex: 1; border-bottom: .25mm solid var(--line); height: 4.6mm; min-width: 6mm; padding: 0 .5mm; }
+input.mi { border-bottom: .25mm solid var(--line); width: 22mm; height: 4mm; padding: 0 .5mm; color: #0b2a6f; }
+input.mi.s { width: 14mm; } input.mi.xs { width: 8mm; text-align: center; }
+.title .meta input.mi { font-size: 8.4pt; }
+input.ln-row { display: block; width: 100%; border-bottom: .25mm solid var(--line); height: 5.4mm; }
+.vin .cells input { height: 6mm; text-align: center; text-transform: uppercase; font-weight: 700; font-size: 9pt; padding: 0; border-right: .25mm solid var(--line-soft); }
+.vin .cells input:last-child { border-right: 0; }
+.vin .cells input:nth-child(3), .vin .cells input:nth-child(9) { border-right-color: var(--line); }
+table td input[type=text] { height: 4.2mm; }
+td.note input[type=text] { font-size: 7pt; }
+input[type=text]:focus { background: #fff6d6; }
+.mirror { color: #0b2a6f; font-weight: 600; }
+
+input.cb {
+    appearance: none; -webkit-appearance: none; margin: 0 1mm 0 0; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+input.cb:checked { background: var(--ink); border-color: var(--ink); }
+input.cb:checked::after { content: ''; width: 1.5mm; height: .8mm; border: solid #fff; border-width: 0 0 .45mm .45mm; transform: translateY(-.25mm) rotate(-45deg); }
+td.c:nth-child(3) input.cb:checked, .rec div:last-child input.cb:checked { background: var(--signal); border-color: var(--signal); }
+.opts span:has(input.cb) { cursor: pointer; }
+.score button {
+    width: 8mm; height: 8mm; border: .3mm solid var(--line); border-radius: 1.4mm; background: #fff;
+    font: 700 10pt var(--font); color: var(--ink); cursor: pointer;
+}
+.score button.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+.score button:hover { border-color: var(--ink); }
+
+.toolbar { gap: 8px; justify-content: flex-start; flex-wrap: wrap; }
+.toolbar .tb-title { color: #fff; font-weight: 700; margin-right: 6px; }
+.toolbar .tb-status { flex: 1; font-size: 13px; color: #9aa1aa; }
+.toolbar button.ghost { background: transparent; border: 1px solid #3b424c; }
+.toolbar button.ghost:hover { border-color: #fff; background: rgba(255,255,255,.06); }
+@media print {
+    input[type=text]:focus { background: transparent; }
+    input[type=text]::placeholder { color: transparent; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <span class="tb-title">Акт осмотра · АвтоБрокер</span>
+    <span class="tb-status" id="status">Черновик сохраняется автоматически</span>
+    <button type="button" class="ghost" id="btnNew">Новый акт</button>
+    <button type="button" class="ghost" id="btnOpen">Открыть…</button>
+    <button type="button" class="ghost" id="btnSave">Сохранить…</button>
+    <button type="button" id="btnPrint">Печать / PDF</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+</div>
+
+<!-- ======================= ЛИСТ 1 ======================= -->
+<section class="sheet">
+    <header class="head">
+        <div class="brand">
+            <div class="mark">А</div>
+            <div><b>АВТОБРОКЕР</b><span>Подбор и привоз авто в Иркутске</span></div>
+        </div>
+        <div class="title">
+            <h1>Акт осмотра автомобиля</h1>
+            <div class="meta">
+                <span>№ <input class="mi s" id="actNo" type="text"></span>
+                <span>Дата <input class="mi" id="actDate" type="text"></span>
+                <span>Место осмотра <input class="mi" style="width:30mm" type="text"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. Клиент и автомобиль -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">1</span>Клиент и автомобиль</div>
+        <div class="fields g2" style="margin-bottom:1.8mm">
+            <div class="f"><label>Клиент (ФИО)</label><input class="ln" type="text"></div>
+            <div class="f"><label>Телефон</label><input class="ln" type="text"></div>
+            <div class="f"><label>Бюджет</label><input class="ln" type="text"></div>
+        </div>
+        <div class="fields g4" style="margin-bottom:1.8mm">
+            <div class="f"><label>Марка, модель</label><input class="ln" id="carModel" type="text"></div>
+            <div class="f"><label>Год</label><input class="ln" type="text"></div>
+            <div class="f"><label>Госномер</label><input class="ln" type="text"></div>
+            <div class="f"><label>Цвет</label><input class="ln" type="text"></div>
+            <div class="f"><label>Двигатель, л / л.с.</label><input class="ln" type="text"></div>
+            <div class="f"><label>Пробег, км</label><input class="ln" type="text"></div>
+            <div class="f"><label>Владельцев</label><input class="ln" type="text"></div>
+            <div class="f"><label>Цена продавца</label><input class="ln" type="text"></div>
+        </div>
+        <div class="vin" style="margin-bottom:1.8mm"><label>VIN / № кузова</label><div class="cells" id="vin"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"><input maxlength="1" type="text"></div></div>
+        <div class="opt-grid">
+            <div class="opt-row"><label>Топливо</label><div class="opts"><span><input type="checkbox" class="cb">Бензин</span><span><input type="checkbox" class="cb">Дизель</span><span><input type="checkbox" class="cb">Гибрид</span><span><input type="checkbox" class="cb">Электро</span></div></div>
+            <div class="opt-row"><label>Документ</label><div class="opts"><span><input type="checkbox" class="cb">ПТС ориг.</span><span><input type="checkbox" class="cb">Дубликат</span><span><input type="checkbox" class="cb">ЭПТС</span></div></div>
+            <div class="opt-row"><label>КПП</label><div class="opts"><span><input type="checkbox" class="cb">МКПП</span><span><input type="checkbox" class="cb">АКПП</span><span><input type="checkbox" class="cb">Вариатор</span><span><input type="checkbox" class="cb">Робот</span></div></div>
+            <div class="opt-row"><label>Продавец</label><div class="opts"><span><input type="checkbox" class="cb">Частник</span><span><input type="checkbox" class="cb">Перекуп.</span><span><input type="checkbox" class="cb">Дилер</span><span><input type="checkbox" class="cb">Аукцион</span></div></div>
+            <div class="opt-row"><label>Привод</label><div class="opts"><span><input type="checkbox" class="cb">Передний</span><span><input type="checkbox" class="cb">Задний</span><span><input type="checkbox" class="cb">Полный</span></div></div>
+            <div class="opt-row"><label>Руль, ключи</label><div class="opts"><span><input type="checkbox" class="cb">Левый</span><span><input type="checkbox" class="cb">Правый</span><span>Ключей: <input class="mi xs" type="text"></span><span><input type="checkbox" class="cb">Книжка ТО</span></div></div>
+        </div>
+    </div>
+
+    <!-- 2. Кузов и ЛКП -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">2</span>Кузов и лакокрасочное покрытие<small>толщина ЛКП в мкм, мин–макс по детали</small></div>
+        <div class="body-grid">
+            <div>
+                <!-- Схема кузова сверху: номера деталей совпадают с таблицей -->
+                <svg class="car-svg" viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" font-family="Onest, Inter, Arial, sans-serif">
+                    <g fill="none" stroke="#16191e" stroke-width="1.6" stroke-linejoin="round">
+                        <!-- контур -->
+                        <path d="M78 22 Q120 8 162 22 L176 52 Q184 70 184 96 L184 214 Q184 246 174 262 L162 282 Q120 294 78 282 L66 262 Q56 246 56 214 L56 96 Q56 70 64 52 Z"/>
+                        <!-- капот -->
+                        <path d="M70 52 Q120 40 170 52 L172 96 L68 96 Z" stroke-width="1"/>
+                        <!-- лобовое -->
+                        <path d="M68 96 L172 96 L164 120 L76 120 Z" fill="#e9ebee"/>
+                        <!-- крыша -->
+                        <rect x="76" y="120" width="88" height="88" rx="5" stroke-width="1"/>
+                        <!-- заднее стекло -->
+                        <path d="M76 208 L164 208 L170 228 L70 228 Z" fill="#e9ebee"/>
+                        <!-- крышка багажника -->
+                        <path d="M70 228 L170 228 L168 264 Q120 274 72 264 Z" stroke-width="1"/>
+                        <!-- линии дверей -->
+                        <path d="M56 120 L68 120 M56 166 L76 166 M56 208 L70 208 M184 120 L172 120 M184 166 L164 166 M184 208 L170 208" stroke-width="1"/>
+                        <!-- зеркала -->
+                        <path d="M56 112 L44 106 L44 118 L56 120 M184 112 L196 106 L196 118 L184 120" stroke-width="1.2"/>
+                        <!-- колёса -->
+                        <rect x="47" y="62" width="9" height="30" rx="3" fill="#16191e"/>
+                        <rect x="184" y="62" width="9" height="30" rx="3" fill="#16191e"/>
+                        <rect x="47" y="218" width="9" height="30" rx="3" fill="#16191e"/>
+                        <rect x="184" y="218" width="9" height="30" rx="3" fill="#16191e"/>
+                    </g>
+                    <g font-size="11" font-weight="700" text-anchor="middle">
+                        <!-- метки -->
+                        <g fill="#c8102e"><circle cx="120" cy="16" r="8"/><circle cx="120" cy="74" r="8"/><circle cx="120" cy="164" r="8"/><circle cx="120" cy="248" r="8"/><circle cx="120" cy="290" r="8"/>
+                        <circle cx="30" cy="78" r="8"/><circle cx="30" cy="143" r="8"/><circle cx="30" cy="187" r="8"/><circle cx="30" cy="233" r="8"/>
+                        <circle cx="210" cy="78" r="8"/><circle cx="210" cy="143" r="8"/><circle cx="210" cy="187" r="8"/><circle cx="210" cy="233" r="8"/></g>
+                        <g fill="#fff">
+                            <text x="120" y="20">1</text><text x="120" y="78">2</text><text x="120" y="168">3</text><text x="120" y="252">4</text><text x="120" y="294">5</text>
+                            <text x="30" y="82">6</text><text x="30" y="147">7</text><text x="30" y="191">8</text><text x="30" y="237">9</text>
+                            <text x="210" y="82">10</text><text x="210" y="147">11</text><text x="210" y="191">12</text><text x="210" y="237">13</text>
+                        </g>
+                    </g>
+                    <g font-size="9" fill="#5c636e" text-anchor="middle">
+                        <text x="18" y="160" transform="rotate(-90 18 160)">левая сторона</text>
+                        <text x="226" y="160" transform="rotate(90 226 160)">правая сторона</text>
+                    </g>
+                </svg>
+                <div class="legend">
+                    <span><b>Ц</b>царапина</span><span><b>В</b>вмятина</span>
+                    <span><b>С</b>скол</span><span><b>К</b>коррозия</span>
+                    <span><b>О</b>окрас</span><span><b>Ш</b>шпатлёвка</span>
+                    <span><b>З</b>замена детали</span><span><b>Р</b>ремонт / сварка</span>
+                </div>
+                <div class="lkp-scale">
+                    <div style="background:#e6f2ea"><b>80–160</b>завод</div>
+                    <div style="background:#fbf1d9"><b>160–300</b>окрас</div>
+                    <div style="background:#f8dcdf"><b>300+</b>шпатлёвка</div>
+                </div>
+                <div class="hint" style="margin-top:1mm">Ориентир для стальных деталей; сверяйте с заводскими значениями модели.</div>
+            </div>
+            <div>
+                <table class="lkp">
+                    <thead><tr><th></th><th>Деталь</th><th>мкм</th><th>Дефекты</th></tr></thead>
+                    <tbody>
+                        <tr><td class="num">1</td><td>Передний бампер</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">2</td><td>Капот</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">3</td><td>Крыша</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">4</td><td>Крышка багажника / дверь</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">5</td><td>Задний бампер</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">6</td><td>Крыло переднее левое</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">7</td><td>Дверь передняя левая</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">8</td><td>Дверь задняя левая</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">9</td><td>Крыло заднее левое</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">10</td><td>Крыло переднее правое</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">11</td><td>Дверь передняя правая</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">12</td><td>Дверь задняя правая</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num">13</td><td>Крыло заднее правое</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                        <tr><td class="num"></td><td>Пороги Л / П, стойки</td><td class="w"><input type="text"></td><td class="w2"><input type="text"></td></tr>
+                    </tbody>
+                </table>
+                <table class="chk" style="margin-top:1.6mm">
+                    <thead><tr><th></th><th>Норма</th><th>Дефект</th><th style="text-align:left;padding-left:1mm">Примечание</th></tr></thead>
+                    <tbody>
+                        <tr><td>Стёкла: даты, сколы, трещины</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Фары, фонари: оригинал</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Зазоры, болты крыльев</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Силовые элементы -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">3</span>Силовые элементы кузова<small>отметьте, если найдено</small></div>
+        <div class="struct">
+            <table class="chk">
+                <thead><tr><th>Передняя часть</th><th>Рем.</th><th>Зам.</th><th>Деф.</th></tr></thead>
+                <tbody>
+                    <tr><td>Передняя панель</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Лонжероны пер. Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Брызговики (чашки) Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Моторный щит</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                </tbody>
+            </table>
+            <table class="chk">
+                <thead><tr><th>Средняя часть</th><th>Рем.</th><th>Зам.</th><th>Деф.</th></tr></thead>
+                <tbody>
+                    <tr><td>Стойки A Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Стойки B Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Пол салона, лонжероны пола</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Рама (для рамных авто)</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                </tbody>
+            </table>
+            <table class="chk">
+                <thead><tr><th>Задняя часть</th><th>Рем.</th><th>Зам.</th><th>Деф.</th></tr></thead>
+                <tbody>
+                    <tr><td>Лонжероны задние Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Арки задние Л / П</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Пол багажника, ниша запаски</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                    <tr><td>Задняя панель</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. Шины и колёса -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">4</span>Шины и колёса</div>
+        <table class="tyres">
+            <thead><tr><th style="width:27mm"></th><th>Марка, размер</th><th style="width:24mm">Протектор, мм</th><th style="width:20mm">Год (DOT)</th><th style="width:44mm">Повреждения</th></tr></thead>
+            <tbody>
+                <tr><td>Переднее левое</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>Переднее правое</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>Заднее левое</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>Заднее правое</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+            </tbody>
+        </table>
+        <div class="opt-grid" style="margin-top:1.8mm">
+            <div class="opt-row"><label>Сезон</label><div class="opts"><span><input type="checkbox" class="cb">Зима шип.</span><span><input type="checkbox" class="cb">Зима фрикц.</span><span><input type="checkbox" class="cb">Лето</span></div></div>
+            <div class="opt-row"><label>Диски</label><div class="opts"><span><input type="checkbox" class="cb">Литые</span><span><input type="checkbox" class="cb">Штампованные</span><span><input type="checkbox" class="cb">Неравн. износ</span></div></div>
+            <div class="opt-row"><label>Ещё</label><div class="opts"><span><input type="checkbox" class="cb">Второй комплект</span><span><input type="checkbox" class="cb">Запаска</span><span><input type="checkbox" class="cb">Домкрат, ключ</span></div></div>
+        </div>
+    </div>
+
+    <div class="foot">
+        <span><b>Лист 1 из 2</b> · Акт осмотра № <span class="mirror" data-src="actNo"></span></span>
+        <span class="road"></span>
+        <span><b>автоброкер38.рф</b> · +7 904 111-14-81</span>
+    </div>
+</section>
+
+<!-- ======================= ЛИСТ 2 ======================= -->
+<section class="sheet">
+    <div class="page-mark">
+        <span><b>АВТОБРОКЕР</b> · Акт осмотра автомобиля № <span class="mirror" data-src="actNo"></span></span>
+        <span>Автомобиль: <span class="mirror" data-src="carModel"></span> · VIN …<span class="mirror" data-src="vin6"></span></span>
+    </div>
+
+    <!-- 5. Техническое состояние -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">5</span>Техническое состояние</div>
+        <div class="cols-2">
+            <table class="chk">
+                <thead><tr><th></th><th>Норма</th><th>Дефект</th><th style="text-align:left;padding-left:1mm">Примечание</th></tr></thead>
+                <tbody>
+                    <tr class="grp"><td colspan="4">Двигатель и подкапотное <span>· на холодную</span></td></tr>
+                    <tr><td>Холодный пуск, работа на ХХ</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Посторонние шумы, вибрации</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Выхлоп: дым, конденсат</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Масло: уровень, эмульсия</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Антифриз, тормозная жидк.</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Течи, запотевания</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Ремни, патрубки, АКБ (дата)</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+
+                    <tr class="grp"><td colspan="4">Ходовая и днище <span>· на подъёмнике</span></td></tr>
+                    <tr><td>Рулевая рейка, тяги</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Передняя подвеска</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Задняя подвеска</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Тормоза: диски, колодки</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Течи ДВС, КПП, редукторов</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Пыльники, ШРУСы, кардан</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Днище, выхлоп, коррозия</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                </tbody>
+            </table>
+            <table class="chk">
+                <thead><tr><th></th><th>Норма</th><th>Дефект</th><th style="text-align:left;padding-left:1mm">Примечание</th></tr></thead>
+                <tbody>
+                    <tr class="grp"><td colspan="4">Компьютерная диагностика <span>· сканер OBD</span></td></tr>
+                    <tr><td>Ошибки ДВС, КПП</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>ABS, ESP, SRS (подушки)</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Пробег в блоках ЭБУ</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>VIN в ЭБУ совпадает</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Гибрид / ЭВ: батарея</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+
+                    <tr class="grp"><td colspan="4">Салон и электрика</td></tr>
+                    <tr><td>Износ руля, педалей, сидений</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Следы воды, ил, ржавчина</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Подушки, ремни: даты</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Климат, обогревы, стёкла</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Мультимедиа, камеры, датчики</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Внешний свет, сигнал, ЦЗ</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    <tr><td>Запах (сырость, гарь, табак)</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 6 + 7 -->
+    <div class="sec">
+        <div class="cols-2">
+            <div>
+                <div class="sec-h"><span class="n">6</span>Тест-драйв</div>
+                <table class="chk">
+                    <thead><tr><th></th><th>Норма</th><th>Дефект</th><th style="text-align:left;padding-left:1mm">Примечание</th></tr></thead>
+                    <tbody>
+                        <tr><td>Разгон, тяга двигателя</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>КПП: переключения, толчки</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Увод при езде и торможении</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Биение руля, педали тормоза</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Стуки подвески, гул, свисты</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Полный привод, сцепление</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div class="sec-h"><span class="n">7</span>Юридическая проверка</div>
+                <table class="chk">
+                    <thead><tr><th></th><th>Чисто</th><th>Есть</th><th style="text-align:left;padding-left:1mm">Примечание</th></tr></thead>
+                    <tbody>
+                        <tr><td>ГИБДД: запреты, розыск, ДТП</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Реестр залогов ФНП, лизинг</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>ФССП: долги собственника</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Такси, каршеринг, отзывные</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>История пробега, ТО, ОСАГО</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>Аукционный лист, экспорт</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                        <tr><td>VIN, № ДВС, таблички</td><td class="c"><input type="checkbox" class="cb"></td><td class="c"><input type="checkbox" class="cb"></td><td class="note"><input type="text"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Комплектация -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">8</span>Комплектация и опции<small>отметьте имеющиеся</small></div>
+        <div class="opts" style="gap:1.6mm 3.6mm;flex-wrap:wrap">
+            <span><input type="checkbox" class="cb">Климат-контроль</span><span><input type="checkbox" class="cb">Кожа</span><span><input type="checkbox" class="cb">Подогрев сидений</span><span><input type="checkbox" class="cb">Подогрев руля / стекла</span><span><input type="checkbox" class="cb">Вентиляция сидений</span><span><input type="checkbox" class="cb">Электропривод сидений</span>
+            <span><input type="checkbox" class="cb">Камера / 360°</span><span><input type="checkbox" class="cb">Парктроники</span><span><input type="checkbox" class="cb">Навигация, CarPlay</span><span><input type="checkbox" class="cb">Круиз / адаптивный</span><span><input type="checkbox" class="cb">Люк / панорама</span><span><input type="checkbox" class="cb">LED / ксенон</span>
+            <span><input type="checkbox" class="cb">Автозапуск, сигнализация</span><span><input type="checkbox" class="cb">Предпусковой подогреватель</span><span><input type="checkbox" class="cb">Фаркоп</span><span><input type="checkbox" class="cb">Пневмоподвеска</span><span><input type="checkbox" class="cb">Русификация (для импорта)</span>
+            <span>Прочее: <input class="mi" style="width:70mm" type="text"></span>
+        </div>
+    </div>
+
+    <!-- 9. Неисправности -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">9</span>Выявленные неисправности и стоимость устранения</div>
+        <table class="faults">
+            <thead><tr><th></th><th>Неисправность</th><th style="padding-left:1mm">Стоимость, ₽</th></tr></thead>
+            <tbody>
+                <tr><td class="n">1</td><td><input type="text"></td><td class="p"><input type="text"></td></tr>
+                <tr><td class="n">2</td><td><input type="text"></td><td class="p"><input type="text"></td></tr>
+                <tr><td class="n">3</td><td><input type="text"></td><td class="p"><input type="text"></td></tr>
+                <tr><td class="n">4</td><td><input type="text"></td><td class="p"><input type="text"></td></tr>
+                <tr><td class="n">5</td><td><input type="text"></td><td class="p"><input type="text"></td></tr>
+                <tr class="total"><td class="n"></td><td>Итого вложений после покупки</td><td class="p"><input type="text"></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 10. Заключение -->
+    <div class="sec">
+        <div class="sec-h"><span class="n">10</span>Заключение автоброкера</div>
+        <div class="verdict">
+            <div>
+                <div class="hint">Общая оценка состояния</div>
+                <div class="score" id="score"><button type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button></div>
+                <div class="rec">
+                    <div><input type="checkbox" class="cb">Рекомендую к покупке</div>
+                    <div><input type="checkbox" class="cb">Рекомендую с торгом<em>с учётом неисправностей</em></div>
+                    <div><input type="checkbox" class="cb">Не рекомендую</div>
+                </div>
+            </div>
+            <div class="money">
+                <div class="f"><label>Цена продавца</label><input class="ln" type="text"></div>
+                <div class="f"><label>Рыночная стоимость</label><input class="ln" type="text"></div>
+                <div class="f"><label>Скидка по итогам осмотра</label><input class="ln" type="text"></div>
+                <div class="f"><label>Итоговая цена после торга</label><input class="ln" type="text"></div>
+            </div>
+        </div>
+        <div class="notes" style="margin-top:2mm">
+            <div class="hint">Комментарии</div>
+            <input class="ln-row" type="text">
+        </div>
+    </div>
+
+    <div class="sign">
+        <div>
+            <div class="f"><label>Автоброкер</label><input class="ln" type="text"></div>
+            <small>подпись / расшифровка</small>
+        </div>
+        <div>
+            <div class="f"><label>Клиент</label><input class="ln" type="text"></div>
+            <small>подпись / расшифровка</small>
+        </div>
+    </div>
+
+    <div class="foot">
+        <span><b>Лист 2 из 2</b> · Осмотр отражает состояние автомобиля на дату проверки</span>
+        <span class="road"></span>
+        <span><b>автоброкер38.рф</b> · +7 904 111-14-81</span>
+    </div>
+</section>
+
+
+<script>
+(function () {
+    const KEY = 'akt-osmotra-draft-v1';
+    const fields = () => Array.from(document.querySelectorAll('.sheet input'));
+    const scoreBtns = Array.from(document.querySelectorAll('#score button'));
+    const status = document.getElementById('status');
+    const vinCells = Array.from(document.querySelectorAll('#vin input'));
+
+    function setStatus(t) { status.textContent = t; }
+
+    /* --- сбор и загрузка данных --- */
+    function collect() {
+        return {
+            version: 1,
+            saved: new Date().toISOString(),
+            values: fields().map(el => el.type === 'checkbox' ? el.checked : el.value),
+            score: scoreBtns.findIndex(b => b.classList.contains('sel'))
+        };
+    }
+    function apply(data) {
+        const els = fields();
+        (data.values || []).forEach((v, i) => {
+            const el = els[i]; if (!el) return;
+            if (el.type === 'checkbox') el.checked = !!v; else el.value = v || '';
+        });
+        scoreBtns.forEach((b, i) => b.classList.toggle('sel', i === data.score));
+        refresh();
+    }
+
+    /* --- зеркала на втором листе --- */
+    function refresh() {
+        const vin = vinCells.map(c => c.value).join('');
+        const src = {
+            actNo: (document.getElementById('actNo').value || '______'),
+            carModel: (document.getElementById('carModel').value || '______________'),
+            vin6: (vin.length >= 6 ? vin.slice(-6) : '______')
+        };
+        document.querySelectorAll('.mirror').forEach(m => { m.textContent = src[m.dataset.src]; });
+    }
+
+    /* --- автосохранение черновика --- */
+    let t;
+    function autosave() {
+        refresh();
+        clearTimeout(t);
+        t = setTimeout(() => {
+            try { localStorage.setItem(KEY, JSON.stringify(collect())); setStatus('Черновик сохранён ' + new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})); } catch (e) {}
+        }, 400);
+    }
+    document.addEventListener('input', autosave);
+    document.addEventListener('change', autosave);
+
+    /* --- оценка 1–5 --- */
+    scoreBtns.forEach(b => b.addEventListener('click', () => {
+        const on = !b.classList.contains('sel');
+        scoreBtns.forEach(x => x.classList.remove('sel'));
+        if (on) b.classList.add('sel');
+        autosave();
+    }));
+
+    /* --- «Норма» и «Дефект» в одной строке взаимоисключающие --- */
+    document.querySelectorAll('table.chk tr').forEach(tr => {
+        if (!tr.querySelector('td.note')) return;
+        const boxes = tr.querySelectorAll('td.c input.cb');
+        boxes.forEach(b => b.addEventListener('change', () => { if (b.checked) boxes.forEach(o => { if (o !== b) o.checked = false; }); }));
+    });
+    /* --- рекомендация: только один вариант --- */
+    const rec = document.querySelectorAll('.rec input.cb');
+    rec.forEach(b => b.addEventListener('change', () => { if (b.checked) rec.forEach(o => { if (o !== b) o.checked = false; }); }));
+
+    /* --- клик по подписи ставит галочку --- */
+    document.querySelectorAll('.opts span, .rec div').forEach(sp => {
+        const cb = sp.querySelector('input.cb');
+        if (!cb) return;
+        sp.addEventListener('click', e => { if (e.target === cb || e.target.tagName === 'INPUT') return; cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', {bubbles: true})); });
+    });
+
+    /* --- VIN: по одной букве, авто-переход, вставка целиком --- */
+    vinCells.forEach((c, i) => {
+        c.addEventListener('input', () => {
+            c.value = c.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (c.value && vinCells[i + 1]) vinCells[i + 1].focus();
+        });
+        c.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !c.value && vinCells[i - 1]) { vinCells[i - 1].focus(); vinCells[i - 1].value = ''; e.preventDefault(); }
+            if (e.key === 'ArrowLeft' && vinCells[i - 1]) vinCells[i - 1].focus();
+            if (e.key === 'ArrowRight' && vinCells[i + 1]) vinCells[i + 1].focus();
+        });
+        c.addEventListener('paste', e => {
+            const txt = (e.clipboardData.getData('text') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (!txt) return;
+            e.preventDefault();
+            for (let k = 0; k < txt.length && i + k < vinCells.length; k++) vinCells[i + k].value = txt[k];
+            (vinCells[Math.min(i + txt.length, vinCells.length - 1)]).focus();
+            autosave();
+        });
+    });
+
+    /* --- Enter переходит к следующему полю --- */
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' || e.target.type !== 'text') return;
+        e.preventDefault();
+        const els = fields().filter(x => x.type === 'text');
+        const n = els[els.indexOf(e.target) + 1];
+        if (n) n.focus();
+    });
+
+    /* --- имя файла --- */
+    function fileName() {
+        const no = document.getElementById('actNo').value.trim();
+        const car = document.getElementById('carModel').value.trim();
+        const date = document.getElementById('actDate').value.trim();
+        const name = ['Акт', no && '№' + no, car, date].filter(Boolean).join(' ').replace(/[\\/:*?"<>|]+/g, '-');
+        return (name || 'Акт осмотра') + '.json';
+    }
+
+    /* --- кнопки --- */
+    const isApp = () => window.pywebview && window.pywebview.api;
+
+    document.getElementById('btnSave').addEventListener('click', async () => {
+        const json = JSON.stringify(collect(), null, 1);
+        if (isApp()) {
+            const ok = await window.pywebview.api.save(json, fileName());
+            if (ok) setStatus('Акт сохранён: ' + ok);
+            return;
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([json], {type: 'application/json'}));
+        a.download = fileName();
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        setStatus('Акт сохранён в «Загрузки»');
+    });
+
+    const fileIn = document.getElementById('fileIn');
+    document.getElementById('btnOpen').addEventListener('click', async () => {
+        if (isApp()) {
+            const txt = await window.pywebview.api.open();
+            if (txt) { try { apply(JSON.parse(txt)); autosave(); setStatus('Акт открыт'); } catch (e) { setStatus('Не удалось прочитать файл акта'); } }
+            return;
+        }
+        fileIn.click();
+    });
+    fileIn.addEventListener('change', () => {
+        const f = fileIn.files[0]; if (!f) return;
+        f.text().then(txt => { try { apply(JSON.parse(txt)); autosave(); setStatus('Акт открыт: ' + f.name); } catch (e) { setStatus('Не удалось прочитать файл акта'); } });
+        fileIn.value = '';
+    });
+
+    document.getElementById('btnNew').addEventListener('click', () => {
+        if (!confirm('Очистить бланк и начать новый акт? Несохранённые данные пропадут.')) return;
+        fields().forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
+        scoreBtns.forEach(b => b.classList.remove('sel'));
+        document.getElementById('actDate').value = new Date().toLocaleDateString('ru-RU');
+        autosave();
+        setStatus('Новый акт');
+    });
+
+    document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+    /* --- старт: восстановить черновик или поставить сегодняшнюю дату --- */
+    let restored = false;
+    try { const d = localStorage.getItem(KEY); if (d) { apply(JSON.parse(d)); restored = true; setStatus('Восстановлен последний черновик'); } } catch (e) {}
+    if (!restored) document.getElementById('actDate').value = new Date().toLocaleDateString('ru-RU');
+    refresh();
+})();
+</script>
+</body>
+</html>

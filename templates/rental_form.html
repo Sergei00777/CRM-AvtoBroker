@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новая аренда' if is_new else 'Аренда' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новая аренда' if is_new else 'Аренда №' ~ rid }}</h1><p>Система проверит, что автомобиль свободен на эти даты</p></div>
+  {% if not is_new %}<div class="actions">
+    <a class="btn ghost sm" href="{{ url_for('document_new', kind='dogovor_prokata', rental_id=rid) }}">{{ icon('doc', 16) }} Договор проката</a>
+    <a class="btn ghost sm" href="{{ url_for('document_new', kind='akt_peredachi', rental_id=rid) }}">{{ icon('doc', 16) }} Акт приёма-передачи</a></div>{% endif %}
+</div>
+<form method="post" class="card form" id="rentForm">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec">
+    <div class="fgrid">
+      <div class="f w6"><label>Автомобиль <span class="req">*</span></label>
+        <select name="car_id" id="car" required><option value="">— выберите —</option>
+          {% for k in cars %}<option value="{{ k.id }}" data-price="{{ k.rent_day_price or 0 }}" {{ 'selected' if (r.car_id|string) == (k.id|string) }}>{{ car_title(k) }}{{ ' · ' ~ k.plate if k.plate }} · {{ k.rent_day_price|money }}/сут</option>{% endfor %}</select></div>
+      <div class="f w6"><label>Клиент (арендатор) <span class="req">*</span></label>
+        <select name="client_id" required><option value="">— выберите —</option>
+          {% for c in clients %}<option value="{{ c.id }}" {{ 'selected' if (r.client_id|string) == (c.id|string) }}>{{ c.full_name }}{{ ' · ' ~ c.phone if c.phone }}</option>{% endfor %}</select>
+        <span class="hint">Нет в списке? <a href="{{ url_for('client_new', kinds='rent') }}">Новый клиент</a></span></div>
+      <div class="f w3"><label>Выдача</label><input type="date" name="start_date" id="sd" required value="{{ r.start_date or '' }}"></div>
+      <div class="f w3"><label>Возврат</label><input type="date" name="end_date" id="ed" required value="{{ r.end_date or '' }}"></div>
+      <div class="f w3"><label>Статус</label>{{ select('status', statuses, r.status) }}</div>
+      <div class="f w3"><label>Менеджер</label>{{ select('manager_id', users, r.manager_id, None, 'full_name') }}</div>
+    </div>
+  </div>
+  <div class="form-sec">
+    <h3>Оплата</h3>
+    <div class="fgrid">
+      <div class="f w3"><label>Цена за сутки, ₽</label><input type="text" class="money" inputmode="numeric" name="price_day" id="pd" value="{{ r.price_day or '' }}"></div>
+      <div class="f w3"><label>Итого, ₽ <span class="hint" id="daysHint"></span></label><input type="text" class="money" inputmode="numeric" name="total" id="tot" value="{{ r.total or '' }}"></div>
+      <div class="f w3"><label>Оплачено, ₽</label><input type="text" class="money" inputmode="numeric" name="paid" value="{{ r.paid or '' }}"></div>
+      <div class="f w3"><label>Залог, ₽</label><input type="text" class="money" inputmode="numeric" name="deposit" value="{{ r.deposit or '' }}"></div>
+      <div class="f w3"><label>Пробег при выдаче</label><input type="text" class="money" inputmode="numeric" name="mileage_out" value="{{ r.mileage_out or '' }}"></div>
+      <div class="f w3"><label>Пробег при возврате</label><input type="text" class="money" inputmode="numeric" name="mileage_in" value="{{ r.mileage_in or '' }}"></div>
+      <div class="f w6"><label>Заметки</label><input type="text" name="notes" value="{{ r.notes or '' }}" placeholder="Топливо, повреждения, доп. оборудование"></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} {{ 'Оформить' if is_new else 'Сохранить' }}</button>
+    <a class="btn ghost" href="{{ url_for('rentals') }}">Отмена</a>
+  </div>
+</form>
+{% if not is_new and user.role == 'admin' %}
+<form method="post" action="{{ url_for('rental_delete', rid=rid) }}" data-confirm="Удалить аренду?" style="margin-top:14px"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <button class="btn danger sm">{{ icon('trash', 16) }} Удалить</button></form>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script>
+(function(){
+  const car = document.getElementById('car'), sd = document.getElementById('sd'), ed = document.getElementById('ed'), pd = document.getElementById('pd'), tot = document.getElementById('tot');
+  let manual = !!tot.value;
+  tot.addEventListener('input', () => manual = true);
+  function calc() {
+    const a = new Date(sd.value), b = new Date(ed.value);
+    const days = Math.max(1, Math.round((b - a) / 864e5)) || 0;
+    document.getElementById('daysHint').textContent = days ? `(${days} сут.)` : '';
+    if (!manual && days) tot.value = CRM.fmt(days * CRM.parseMoney(pd.value));
+  }
+  car.addEventListener('change', () => { const p = car.selectedOptions[0]?.dataset.price; if (p && p !== '0') pd.value = CRM.fmt(p); manual = false; calc(); });
+  [sd, ed, pd].forEach(x => x.addEventListener('input', () => { manual = false; calc(); }));
+  sd.addEventListener('change', () => { if (ed.value <= sd.value) { const d = new Date(sd.value); d.setDate(d.getDate() + 1); ed.value = d.toISOString().slice(0, 10); } calc(); });
+  if (car.value && !pd.value) car.dispatchEvent(new Event('change')); else calc();
+})();
+</script>{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar, temp_badge, kind_chip, empty %}
+{% block title %}Клиенты{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Клиенты</h1><p>{{ rows|length }} {{ 'в выборке' }}</p></div>
+  <div class="actions">
+    <a class="btn ghost" href="{{ url_for('clients_export') }}">{{ icon('download') }} Экспорт в Excel (CSV)</a>
+    {% if can_edit %}<a class="btn" href="{{ url_for('client_new') }}">{{ icon('user-plus') }} Новый клиент</a>{% endif %}
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="tabs">
+    <a href="{{ url_for('clients', kind=kind) }}" class="{{ 'on' if not temp }}">Все активные</a>
+    {% for t in temps %}<a href="{{ url_for('clients', temp=t, kind=kind) }}" class="{{ 'on' if temp == t }}">{{ t }}<em>{{ temp_counts.get(t, 0) }}</em></a>{% endfor %}
+  </div>
+  <div class="grow"></div>
+  <form class="input-s">{{ icon('search', 16) }}<input name="q" value="{{ s }}" placeholder="Имя, телефон, email"><input type="hidden" name="temp" value="{{ temp }}">
+    <select name="kind" onchange="this.form.submit()" style="border:0;height:34px;padding:0 6px;width:auto;box-shadow:none">
+      <option value="">Все услуги</option>{% for code, k in DEAL_KINDS.items() %}<option value="{{ code }}" {{ 'selected' if kind == code }}>{{ k[0] }}</option>{% endfor %}
+    </select></form>
+</div>
+
+<div class="card">
+  {% if rows %}
+  <div class="table-wrap"><table class="t">
+    <thead><tr><th>Клиент</th><th>Что нужно</th><th>Статус</th><th class="r">Бюджет</th><th>Источник</th><th>Перезвонить</th><th>Менеджер</th></tr></thead>
+    <tbody>
+    {% for c in rows %}
+      <tr data-href="{{ url_for('client_view', cid=c.id) }}">
+        <td><div class="who">{{ avatar(c.full_name) }}<div><b>{{ c.full_name }}</b><small>{{ c.phone or c.email or '—' }}</small></div></div></td>
+        <td>{% for k in (c.kinds or '').split(',')|unique if k %}{{ kind_chip(k) }} {% else %}<span class="muted">—</span>{% endfor %}</td>
+        <td>{{ temp_badge(c.temp) }}</td>
+        <td class="r money">{{ c.budget|money if c.budget else '—' }}</td>
+        <td class="muted">{{ c.source or '—' }}</td>
+        <td class="{{ 'red' if c.next_call and c.next_call < today_iso }}">{{ c.next_call|dt if c.next_call else '—' }}</td>
+        <td class="muted">{{ c.manager or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}{{ empty('Клиентов не найдено', 'users', 'Добавить клиента' if can_edit, url_for('client_new')) }}{% endif %}
+</div>
+{% endblock %}

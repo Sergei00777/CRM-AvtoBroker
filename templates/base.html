@@ -1,0 +1,98 @@
+{% from "_ui.html" import icon, avatar %}<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="{{ csrf_token() }}">
+<title>{% block title %}CRM{% endblock %} · {{ settings.company_name if settings else 'АвтоБрокер' }}</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=3">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('crm-theme')||'light'}catch(e){}</script>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="">
+      <div><b>{{ settings.company_name }}</b><span>CRM · {{ settings.company_city }}</span></div>
+    </a>
+    <nav class="nav">
+      {% set ep = request.endpoint or '' %}
+      {% macro item(endpoint, label, ic, count=None, args={}, active=False) -%}
+        <a href="{{ url_for(endpoint, **args) }}" class="{{ 'active' if active }}">{{ icon(ic) }}<span>{{ label }}</span>{% if count is not none %}<em>{{ count }}</em>{% endif %}</a>
+      {%- endmacro %}
+      {{ item('dashboard', 'Дашборд', 'dashboard', active=ep == 'dashboard') }}
+      {{ item('tasks', 'Задачи', 'task', counts.tasks, active=ep.startswith('task')) }}
+      {{ item('calendar_view', 'Календарь', 'calendar', active=ep.startswith('calendar') or ep.startswith('event')) }}
+
+      <div class="nav-h">Продажи</div>
+      {{ item('deals', 'Воронка сделок', 'funnel', counts.deals, active=ep.startswith('deal')) }}
+      {{ item('clients', 'Клиенты', 'users', counts.clients, active=ep.startswith('client')) }}
+      {{ item('documents', 'Договоры и акты', 'doc', counts.docs, active=ep.startswith('document')) }}
+
+      <div class="nav-h">Склад</div>
+      {% set v = request.args.get('view', 'all') %}
+      {{ item('cars', 'Все автомобили', 'car', args={'view':'all'}, active=ep.startswith('car') and v == 'all') }}
+      {{ item('cars', 'На складе', 'warehouse', counts.stock, args={'view':'stock'}, active=ep == 'cars' and v == 'stock') }}
+      {{ item('cars', 'Китай · Япония · Корея', 'ship', counts.transit, args={'view':'transit'}, active=ep == 'cars' and v in ('transit','china','japan','korea')) }}
+      {{ item('cars', 'Выкуп', 'buyout', counts.buyout, args={'view':'buyout'}, active=ep == 'cars' and v == 'buyout') }}
+      {{ item('cars', 'Комиссия', 'handshake', counts.commission, args={'view':'commission'}, active=ep == 'cars' and v == 'commission') }}
+      {{ item('pricetags', 'Ценники', 'tag', active=ep.startswith('pricetag')) }}
+
+      <div class="nav-h">Прокат</div>
+      {{ item('rentals', 'Аренды и график', 'key', counts.rent_active, active=ep.startswith('rental')) }}
+      {{ item('cars', 'Автопарк', 'car', counts.fleet, args={'view':'fleet'}, active=ep == 'cars' and v == 'fleet') }}
+
+      <div class="nav-h">Команда</div>
+      <a href="{{ url_for('chat') }}" class="{{ 'active' if ep.startswith('chat') }}" id="navChat" data-url="{{ url_for('chat_unread') }}">{{ icon('chat') }}<span>Чат</span><em class="hot" {{ 'hidden' if not counts.chat }}>{{ counts.chat }}</em></a>
+
+      {% if user.role == 'admin' %}
+      <div class="nav-h">Администрирование</div>
+      {{ item('admin_users', 'Сотрудники и доступ', 'shield', counts.users, active=ep.startswith('admin_user')) }}
+      {{ item('admin_settings', 'Настройки', 'settings', active=ep == 'admin_settings') }}
+      {% endif %}
+    </nav>
+
+    <div class="mini-cal" id="miniCal" data-url="{{ url_for('api_calendar') }}" data-cal="{{ url_for('calendar_view') }}">
+      <div class="mc-head"><button type="button" data-step="-1">{{ icon('left', 14) }}</button><b></b><button type="button" data-step="1">{{ icon('right', 14) }}</button></div>
+      <div class="mc-grid"></div>
+    </div>
+
+    <div class="me">
+      {{ avatar(user.full_name) }}
+      <a href="{{ url_for('profile') }}" class="me-name"><b>{{ user.full_name }}</b><span>{{ ROLES[user.role] }}</span></a>
+      <a href="{{ url_for('logout') }}" class="icon-btn" title="Выйти">{{ icon('logout') }}</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn burger" type="button" onclick="document.body.classList.toggle('nav-open')">{{ icon('menu') }}</button>
+      <div class="crumbs">{% block crumbs %}{{ self.title() }}{% endblock %}</div>
+      <form class="gsearch" action="{{ url_for('search') }}" autocomplete="off">
+        {{ icon('search') }}
+        <input name="q" id="gq" placeholder="Поиск: клиент, телефон, VIN, госномер…" value="{{ request.args.get('q', '') if request.endpoint == 'search' }}">
+        <kbd>Ctrl K</kbd>
+        <div class="gs-drop" id="gsDrop"></div>
+      </form>
+      <div class="bell">
+        <button class="icon-btn" type="button" id="bellBtn" data-url="{{ url_for('notifications') }}">{{ icon('bell') }}<i id="bellN" hidden></i></button>
+        <div class="drop" id="bellDrop"><div class="drop-h">Уведомления</div><div id="bellList"><p class="muted pad">Загрузка…</p></div></div>
+      </div>
+      <button class="icon-btn" type="button" id="themeBtn" title="Тёмная / светлая тема">{{ icon('moon', 18, 'i-moon') }}{{ icon('sun', 18, 'i-sun') }}</button>
+    </header>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}{% if msgs %}
+      <div class="toasts">{% for cat, m in msgs %}<div class="toast {{ cat }}">{{ m }}</div>{% endfor %}</div>
+    {% endif %}{% endwith %}
+
+    <div class="content">{% block content %}{% endblock %}</div>
+  </main>
+</div>
+<div class="scrim" onclick="document.body.classList.remove('nav-open')"></div>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=3"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

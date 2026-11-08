@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, avatar %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<div class="page-head"><div class="profile">{{ avatar(user.full_name, 'lg') }}<div><h1>{{ user.full_name }}</h1><p>{{ ROLES[user.role] }} · логин <code>{{ user.username }}</code></p></div></div></div>
+<form method="post" action="{{ url_for('profile_photo') }}" enctype="multipart/form-data" class="card form mb" style="max-width:620px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec"><h3>{{ icon('camera') }} Моё фото</h3>
+    <div class="photo-pick">
+      {{ avatar(user.full_name, 'xl') }}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label class="btn sm">{{ icon('camera', 16) }} Загрузить фото<input type="file" name="photo" accept="image/*" hidden onchange="this.form.submit()"></label>
+        {% if user_photo(user.id) %}<button class="btn ghost sm" name="remove" value="1">Удалить</button>{% endif %}
+      </div>
+    </div></div>
+</form>
+<form method="post" class="card form" style="max-width:620px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="form-sec"><h3>{{ icon('lock') }} Смена пароля</h3>
+    <div class="fgrid">
+      <div class="f w12"><label>Текущий пароль</label><input type="password" name="old" required autocomplete="current-password"></div>
+      <div class="f w6"><label>Новый пароль</label><input type="password" name="new" required minlength="6" autocomplete="new-password"></div>
+      <div class="f w6"><label>Ещё раз</label><input type="password" name="new2" required minlength="6" autocomplete="new-password"></div>
+    </div></div>
+  <div class="form-foot"><button class="btn">Сменить пароль</button></div>
+</form>
+{% endblock %}

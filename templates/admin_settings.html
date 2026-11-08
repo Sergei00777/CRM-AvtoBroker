@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon %}
+{% block title %}Настройки{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Настройки</h1><p>Данные компании подставляются в договоры и акты</p></div></div>
+<div class="grid g-main">
+  <form method="post" class="card form">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="form-sec"><h3>Компания</h3>
+      <div class="fgrid">
+        <div class="f w6"><label>Название в CRM</label><input type="text" name="company_name" value="{{ s.company_name }}"></div>
+        <div class="f w6"><label>Город</label><input type="text" name="company_city" value="{{ s.company_city }}"></div>
+        <div class="f w6"><label>Юр. лицо / ИП (для договоров)</label><input type="text" name="company_legal" value="{{ s.company_legal }}"></div>
+        <div class="f w3"><label>Телефон</label><input type="tel" name="company_phone" value="{{ s.company_phone }}"></div>
+        <div class="f w3"><label>Сайт</label><input type="text" name="company_site" value="{{ s.company_site }}"></div>
+        <div class="f w12"><label>Реквизиты (ИНН, ОГРНИП, адрес, банк)</label><textarea name="company_requisites">{{ s.company_requisites }}</textarea></div>
+      </div>
+    </div>
+    <div class="form-foot"><button class="btn">{{ icon('check') }} Сохранить</button></div>
+  </form>
+  <aside>
+    <section class="card mb"><div class="card-h"><h2>База данных</h2></div>
+      <div class="card-b">
+        <div class="stat-mini mb">
+          <div><b>{{ stats.clients }}</b><span>клиентов</span></div><div><b>{{ stats.deals }}</b><span>сделок</span></div><div><b>{{ stats.cars }}</b><span>авто</span></div>
+          <div><b>{{ stats.rentals }}</b><span>аренд</span></div><div><b>{{ stats.tasks }}</b><span>задач</span></div><div><b>{{ stats.documents }}</b><span>документов</span></div>
+        </div>
+        <p class="muted" style="margin:0 0 12px;font-size:13px;word-break:break-all">Файл: {{ db_path }}</p>
+        <a class="btn ghost sm block" href="{{ url_for('admin_backup') }}">{{ icon('download', 16) }} Скачать резервную копию</a>
+      </div></section>
+    {% if not stats.clients %}
+    <section class="card"><div class="card-h"><h2>Демо-данные</h2></div>
+      <div class="card-b"><p class="muted" style="margin:0 0 12px">База пустая. Можно загрузить пример: 10 клиентов, 17 авто, сделки, аренды и задачи.</p>
+        <form method="post" action="{{ url_for('admin_demo') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn ghost sm block">Загрузить демо-данные</button></form></div></section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

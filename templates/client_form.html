@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "_ui.html" import icon, select %}
+{% block title %}{{ 'Новый клиент' if is_new else 'Редактирование клиента' }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>{{ 'Новый клиент' if is_new else c.full_name }}</h1>
+  <p>{{ 'Заполните контакты и отметьте, что нужно клиенту — по каждой услуге создастся сделка в воронке' if is_new else 'Редактирование карточки клиента' }}</p></div></div>
+
+<form method="post" class="card form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+  {% if is_new %}
+  <div class="form-sec">
+    <h3>Что нужно клиенту?</h3>
+    <div class="tiles">
+      {% set subs = {'china':'Под заказ, растаможка, доставка','japan':'Аукционы, конструктор, целиком','korea':'Encar, доставка в Иркутск','selection':'Поиск, осмотр, проверка',
+                     'sale':'Авто с нашего склада','purchase':'Выкупаем авто клиента','commission':'Продаём авто клиента','rent':'Посуточная аренда'} %}
+      {% for code, k in DEAL_KINDS.items() %}
+      <label class="tile"><input type="checkbox" name="kinds" value="{{ code }}" {{ 'checked' if code in preselect }}>
+        <span class="em">{{ k[1] }}</span><span><b>{{ k[0] }}</b><small>{{ subs[code] }}</small></span></label>
+      {% endfor %}
+    </div>
+    <div class="fgrid" style="margin-top:16px">
+      <div class="f w8"><label>Какой автомобиль ищет / предлагает</label><input type="text" name="deal_car_wish" value="{{ c.deal_car_wish or '' }}" placeholder="Например: Geely Monjaro 2024, полный привод, белый"></div>
+      <div class="f"><label>Бюджет, ₽</label><input type="text" class="money" name="deal_budget" inputmode="numeric" value="{{ c.deal_budget or '' }}" placeholder="3 000 000"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="form-sec">
+    <h3>Контакты</h3>
+    <div class="fgrid">
+      <div class="f w6"><label>ФИО <span class="req">*</span></label><input type="text" name="full_name" required value="{{ c.full_name or '' }}" placeholder="Фамилия Имя Отчество" {{ 'autofocus' if is_new }}></div>
+      <div class="f w3"><label>Телефон</label><input type="tel" name="phone" value="{{ c.phone or '' }}" placeholder="+7 9__ ___-__-__"></div>
+      <div class="f w3"><label>Доп. телефон</label><input type="tel" name="phone2" value="{{ c.phone2 or '' }}"></div>
+      <div class="f"><label>Email</label><input type="email" name="email" value="{{ c.email or '' }}"></div>
+      <div class="f"><label>Telegram / WhatsApp</label><input type="text" name="messenger" value="{{ c.messenger or '' }}" placeholder="@username"></div>
+      <div class="f"><label>Город</label><input type="text" name="city" value="{{ c.city or 'Иркутск' }}"></div>
+    </div>
+  </div>
+
+  <div class="form-sec">
+    <h3>Работа с клиентом</h3>
+    <div class="fgrid">
+      <div class="f w3"><label>Статус</label>{{ select('temp', temps, c.temp) }}</div>
+      <div class="f w3"><label>Источник</label>{{ select('source', sources, c.source, '— не указан —') }}</div>
+      <div class="f w3"><label>Ответственный</label>{{ select('manager_id', users, c.manager_id, None, 'full_name') }}</div>
+      <div class="f w3"><label>Перезвонить</label><input type="date" name="next_call" value="{{ c.next_call or '' }}"></div>
+      <div class="f w12"><label>Заметки</label><textarea name="notes" placeholder="Пожелания, договорённости, особенности">{{ c.notes or '' }}</textarea></div>
+    </div>
+  </div>
+
+  <div class="form-sec">
+    <h3>Данные для договоров <span class="hint" style="font-weight:400">— подставятся в договор и акты автоматически</span></h3>
+    <div class="fgrid">
+      <div class="f w6"><label>Паспорт (серия, номер, кем и когда выдан)</label><input type="text" name="passport" value="{{ c.passport or '' }}"></div>
+      <div class="f w3"><label>Дата рождения</label><input type="date" name="birth_date" value="{{ c.birth_date or '' }}"></div>
+      <div class="f w3"><label>Водительское удостоверение</label><input type="text" name="license" value="{{ c.license or '' }}" placeholder="для проката"></div>
+    </div>
+  </div>
+
+  <div class="form-foot">
+    <button class="btn">{{ icon('check') }} {{ 'Создать клиента' if is_new else 'Сохранить' }}</button>
+    <a class="btn ghost" href="{{ url_for('clients') if is_new else url_for('client_view', cid=c.id) }}">Отмена</a>
+  </div>
+</form>
+{% endblock %}

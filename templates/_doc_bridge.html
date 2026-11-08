@@ -1,0 +1,52 @@
+<script>
+/* Мост CRM ↔ бланк: хранение в базе CRM вместо файлов, автоподстановка данных клиента и авто */
+(function () {
+  var KEY = {{ key|tojson }}, SAVE = {{ url_for('document_data', did=did)|tojson }}, CSRF = {{ csrf_token()|tojson }};
+  var saved = {{ saved|tojson }}, prefill = {{ prefill|tojson }}, readonly = {{ readonly|tojson }};
+  try { if (saved) localStorage.setItem(KEY, JSON.stringify(saved)); else localStorage.removeItem(KEY); } catch (e) {}
+
+  function post(body) {
+    if (readonly) return Promise.resolve(false);
+    return fetch(SAVE, { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF': CSRF }, body: JSON.stringify(body) })
+      .then(function (r) { return r.ok ? r.json() : false; })
+      .then(function (j) {
+        if (j && window.parent !== window) window.parent.postMessage({ crmSaved: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) }, '*');
+        return j;
+      }).catch(function () { return false; });
+  }
+  var t;
+  window.__crmSync = function (data) { clearTimeout(t); t = setTimeout(function () { post({ data: data }); }, 700); };
+  window.pywebview = { api: {
+    save: function (json, name) {
+      return post({ data: JSON.parse(json), title: String(name || '').replace(/\.json$/i, '') }).then(function (ok) { return ok ? 'в CRM' : false; });
+    },
+    open: function () { return fetch(SAVE, { credentials: 'same-origin' }).then(function (r) { return r.text(); }); }
+  } };
+
+  function byLabel(text) {
+    var labels = document.querySelectorAll('.f label');
+    for (var i = 0; i < labels.length; i++) {
+      if (labels[i].textContent.trim() === text) { var inp = labels[i].parentNode.querySelector('input'); if (inp) return inp; }
+    }
+    return null;
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!prefill) return;
+    var last = null;
+    Object.keys(prefill).forEach(function (k) {
+      var v = prefill[k];
+      if (!v) return;
+      if (k === '@vin') {
+        var cells = document.querySelectorAll('#vin input');
+        String(v).toUpperCase().replace(/[^A-Z0-9]/g, '').split('').forEach(function (ch, i) { if (cells[i]) { cells[i].value = ch; last = cells[i]; } });
+        return;
+      }
+      var el = k.charAt(0) === '#' ? document.getElementById(k.slice(1)) : byLabel(k);
+      if (el && !el.value) { el.value = v; last = el; }
+    });
+    if (last) last.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+})();
+</script>
+<style>#btnOpen { display: none !important; }</style>

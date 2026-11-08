@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ценник АвтоБрокер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:wght@400;500;600;700;800&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --graphite:#333333; --black:#111111; --terra:#A5574C; --terra-d:#8E4A40; --light:#E5E5E5; --paper:#F4F4F2;
+  --ui-bg:#ECECEA; --ui-panel:#FFFFFF; --ui-line:#DADAD6; --ui-text:#222; --ui-muted:#77756F;
+  --head:'Wix Madefor Text','Segoe UI',Arial,sans-serif;
+  --body:'Alegreya Sans','Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--ui-bg);color:var(--ui-text);font-family:var(--head);font-size:14px}
+.app{display:grid;grid-template-columns:440px 1fr;height:100vh}
+
+/* ---------- EDITOR ---------- */
+.editor{background:var(--ui-panel);border-right:1px solid var(--ui-line);display:flex;flex-direction:column;min-height:0}
+.ed-top{padding:16px 20px 14px;background:var(--graphite);color:#fff;display:flex;align-items:center;gap:12px}
+.ed-top svg{height:30px;width:auto;fill:#fff;flex:none}
+.ed-top .t{font-weight:800;font-size:15px;letter-spacing:.02em}
+.ed-top .s{font-size:12px;opacity:.65;margin-top:2px}
+.ed-scroll{overflow:auto;flex:1;padding:6px 20px 30px}
+.sec{border-bottom:1px solid var(--ui-line);padding:16px 0 18px}
+.sec:last-child{border-bottom:0}
+.sec h3{margin:0 0 12px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);font-weight:800;display:flex;align-items:center;gap:8px}
+.sec h3 .n{background:var(--terra);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-grid;place-items:center;font-size:11px;letter-spacing:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;min-width:0}
+.grid2 .f,.grid3 .f{margin-bottom:0}
+.f label{font-size:12px;color:var(--ui-muted);font-weight:600}
+.f input,.f select,.f textarea{font:inherit;font-size:14px;border:1px solid var(--ui-line);border-radius:8px;padding:9px 11px;background:#FAFAF8;color:var(--ui-text);width:100%;outline:none;transition:border-color .15s,box-shadow .15s}
+.f textarea{resize:vertical;min-height:96px;line-height:1.4;font-family:var(--body);font-size:15px}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--terra);box-shadow:0 0 0 3px rgba(165,87,76,.15);background:#fff}
+.hint{font-size:12px;color:var(--ui-muted);line-height:1.4;margin-top:2px}
+.hint.err{color:#B3261E}
+.hint.ok{color:#2E7D4F}
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:1fr 1.2fr 28px 28px 28px;gap:6px;align-items:center}
+.row input{font:inherit;font-size:13.5px;border:1px solid var(--ui-line);border-radius:7px;padding:7px 9px;background:#FAFAF8;width:100%;min-width:0;outline:none}
+.row input:focus{border-color:var(--terra);background:#fff}
+.ib{border:1px solid var(--ui-line);background:#fff;border-radius:7px;height:30px;cursor:pointer;color:var(--ui-muted);font-size:14px;padding:0;display:grid;place-items:center}
+.ib:hover{border-color:var(--terra);color:var(--terra)}
+.btn{font:inherit;font-weight:700;font-size:14px;border-radius:9px;padding:11px 16px;border:1px solid var(--ui-line);background:#fff;color:var(--ui-text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,border-color .15s,transform .05s}
+.btn:hover{border-color:var(--graphite)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn.primary:hover{background:var(--terra-d)}
+.btn.dark{background:var(--graphite);border-color:var(--graphite);color:#fff}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.6;cursor:wait}
+.ed-actions{padding:14px 20px;border-top:1px solid var(--ui-line);display:grid;grid-template-columns:1.4fr 1fr;gap:10px;background:#FAFAF8}
+.ed-actions .wide{grid-column:1/-1;display:flex;gap:8px}
+.ed-actions .wide .btn{flex:1}
+.lib{display:flex;gap:8px}
+.lib select{flex:1}
+details.more summary{cursor:pointer;font-size:13px;color:var(--ui-muted);font-weight:600;padding:4px 0}
+details.more[open] summary{margin-bottom:10px}
+
+/* ---------- PREVIEW ---------- */
+.preview{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-width:0}
+.preview .tip{position:absolute;top:12px;left:0;right:0;text-align:center;font-size:12px;color:var(--ui-muted)}
+.stage{transform-origin:center center;box-shadow:0 18px 50px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.08)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--graphite);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- SHEET (A4) ---------- */
+.sheet{width:210mm;height:297mm;background:#fff;color:var(--graphite);position:relative;overflow:hidden;display:flex;flex-direction:column;font-family:var(--body);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sh-head{position:relative;height:28mm;background:var(--graphite);color:#fff;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 14mm}
+.sh-head .deco{position:absolute;inset:0;width:100%;height:100%}
+.sh-head .logo{position:relative;height:13.5mm;width:auto;fill:#fff;display:block}
+.sh-head .slog{position:relative;text-align:right;font-family:var(--head)}
+.sh-head .slog b{display:block;font-weight:800;font-size:12pt;letter-spacing:.14em}
+.sh-head .slog span{display:block;font-size:9pt;opacity:.7;margin-top:1.2mm;letter-spacing:.04em}
+
+.sh-title{padding:7mm 14mm 5mm;flex:none}
+.chips{display:flex;gap:2.2mm;margin-bottom:3.5mm}
+.chips:empty{display:none}
+.chip{font-family:var(--head);font-weight:700;font-size:8.5pt;letter-spacing:.1em;text-transform:uppercase;padding:1.5mm 3.2mm;border-radius:10mm;border:.35mm solid var(--graphite);color:var(--graphite);line-height:1}
+.chip.fill{background:var(--terra);border-color:var(--terra);color:#fff}
+.brand{font-family:var(--head);font-weight:800;color:var(--terra);font-size:22pt;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+.model{font-family:var(--head);font-weight:800;color:var(--black);font-size:60pt;line-height:.98;text-transform:uppercase;white-space:nowrap;margin-top:1.5mm;letter-spacing:-.01em}
+.sub{font-family:var(--body);font-size:14pt;color:#666;margin-top:2mm}
+.sub:empty{display:none}
+
+.sh-price{position:relative;background:var(--terra);color:#fff;flex:none;padding:5mm 14mm 5.5mm;display:flex;align-items:flex-end;justify-content:space-between;gap:6mm;overflow:hidden}
+.sh-price .deco{position:absolute;inset:0;width:100%;height:100%}
+.pl{position:relative;min-width:0}
+.pl .val{display:inline-block}
+.pl .lbl{font-family:var(--head);font-weight:700;font-size:9pt;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+.pl .val{font-family:var(--head);font-weight:800;font-size:50pt;line-height:1;margin-top:1.5mm;white-space:nowrap;letter-spacing:-.01em}
+.pl .val small{font-size:.55em;font-weight:700;margin-left:2mm}
+.pl .val.req{font-size:34pt}
+.pr{position:relative;text-align:right;font-family:var(--head);padding-bottom:1mm}
+.pr .old{font-size:15pt;opacity:.75;text-decoration:line-through;white-space:nowrap}
+.pr .save{display:inline-block;background:#fff;color:var(--terra);font-weight:800;font-size:10.5pt;padding:1.6mm 3mm;border-radius:1.2mm;margin-top:1.5mm;white-space:nowrap}
+.pnote{position:relative;font-family:var(--body);font-size:12pt;margin-top:2mm;opacity:.95}
+.pnote:empty{display:none}
+
+.sh-figs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);margin:0 14mm;border-bottom:.3mm solid var(--light)}
+.fig{padding:4.5mm 0 4.2mm 4mm;border-left:.3mm solid var(--light)}
+.fig:first-child{border-left:0;padding-left:0}
+.fig .k{font-family:var(--head);font-size:7.5pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A}
+.fig .v{font-family:var(--head);font-weight:800;font-size:17pt;color:var(--black);margin-top:1.6mm;white-space:nowrap;line-height:1.05}
+.fig .v small{font-size:.62em;font-weight:700;color:#555}
+.fig .d{font-family:var(--body);font-size:10pt;color:#777;margin-top:.8mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.sh-main{flex:1;min-height:0;display:flex;gap:9mm;padding:6mm 14mm 5mm;overflow:hidden;--fs:12pt}
+.specs{flex:1.15;min-width:0}
+.feats{flex:1;min-width:0}
+.sh-main.nofeat .specs{flex:1}
+.sh-main .h{font-family:var(--head);font-weight:800;font-size:9pt;letter-spacing:.16em;text-transform:uppercase;color:var(--terra);margin-bottom:2.5mm;display:flex;align-items:center;gap:2.5mm}
+.sh-main .h:after{content:"";flex:1;height:.3mm;background:var(--light)}
+.sp{display:flex;justify-content:space-between;align-items:baseline;gap:4mm;font-size:var(--fs);padding:calc(var(--fs)*.36) 0;border-bottom:.25mm dashed #D4D4D4}
+.sp:last-child{border-bottom:0}
+.sp .l{color:#777;white-space:nowrap}
+.sp .r{font-weight:700;color:var(--black);text-align:right}
+.ft{display:flex;gap:2.8mm;align-items:flex-start;font-size:var(--fs);line-height:1.25;padding:calc(var(--fs)*.3) 0;color:var(--black);font-weight:500}
+.ft i{flex:none;width:calc(var(--fs)*1.25);height:calc(var(--fs)*1.25);border-radius:50%;background:var(--terra);display:grid;place-items:center;margin-top:.1mm}
+.ft i svg{width:62%;height:62%;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ftxt{font-family:var(--body);font-size:var(--fs);line-height:1.35;color:#444;margin-top:3mm;white-space:pre-line}
+
+.sh-qr{flex:none;background:var(--paper);padding:4.5mm 14mm 4.5mm;display:flex;align-items:center;gap:6mm}
+.qr-lead{flex:0 0 40mm;font-family:var(--head)}
+.qr-lead b{display:block;font-weight:800;font-size:14pt;line-height:1.1;color:var(--black)}
+.qr-lead span{display:block;font-family:var(--body);font-size:10.5pt;line-height:1.3;color:#666;margin-top:2mm}
+.qr-lead .cam{width:8mm;height:8mm;margin-bottom:2mm;stroke:var(--terra);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.qrs{flex:1;display:flex;justify-content:space-between;gap:4mm}
+.qc{display:flex;flex-direction:column;align-items:center;text-align:center;width:36mm}
+.qbox{background:#fff;border-radius:2.5mm;padding:2.2mm;border:.4mm solid #DCDCDC;position:relative}
+.qc.main .qbox{border:.7mm solid var(--terra)}
+.qbox svg{display:block;width:28mm;height:28mm}
+.qc.main .qbox svg{width:31mm;height:31mm}
+.qtag{font-family:var(--head);font-weight:800;font-size:7pt;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--graphite);padding:1.1mm 2.4mm;border-radius:1mm;margin-top:-2.4mm;position:relative;z-index:1}
+.qc.main .qtag{background:var(--terra)}
+.qcap{font-family:var(--body);font-size:9.5pt;line-height:1.2;color:#555;margin-top:1.6mm}
+.qempty{width:28mm;height:28mm;display:grid;place-items:center;font-family:var(--body);font-size:9pt;color:#AAA;border:.3mm dashed #CCC;border-radius:1.5mm}
+.qc.main .qempty{width:31mm;height:31mm}
+
+.sh-foot{position:relative;flex:none;height:20mm;background:var(--graphite);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14mm;overflow:hidden}
+.sh-foot .deco{position:absolute;inset:0;width:100%;height:100%}
+.fl,.fr{position:relative}
+.fl .ph{font-family:var(--head);font-weight:800;font-size:19pt;letter-spacing:.01em;white-space:nowrap}
+.fl .who{font-family:var(--body);font-size:10.5pt;opacity:.75;margin-top:.8mm}
+.fr{text-align:right;font-family:var(--body);font-size:10.5pt;line-height:1.35;opacity:.92;max-width:108mm}
+.fr b{font-family:var(--head);font-weight:700;font-size:10pt;color:#fff;letter-spacing:.03em}
+
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff;height:auto}
+  .editor,.tip,.toast{display:none!important}
+  .app{display:block;height:auto}
+  .preview{display:block;overflow:visible}
+  .stage{transform:none!important;box-shadow:none!important}
+}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;height:auto}
+  .editor{border-right:0}
+  .preview{height:80vh}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="editor">
+    <div class="ed-top">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="20" fill="#C8102E"/><path fill="#fff" fill-rule="evenodd" d="M40 15h20l21 60H66l-4.2-12H38.2L34 75H19zM43 49h14l-7-21z"/><rect x="22" y="82" width="56" height="6" rx="3" fill="#fff"/></svg>
+      <div><div class="t">Конструктор ценников</div><div class="s">Заполните поля — ценник справа обновится сам</div></div>
+    </div>
+    <div class="ed-scroll">
+
+      <div class="sec">
+        <h3>Мои ценники</h3>
+        <div class="lib">
+          <select id="libSel" style="font:inherit;font-size:14px;border:1px solid var(--ui-line);border-radius:8px;padding:8px 10px;background:#FAFAF8"></select>
+          <button class="btn sm" id="libDel" title="Удалить из списка">Удалить</button>
+        </div>
+        <div class="hint">Каждый сохранённый в PDF ценник попадает сюда — его можно открыть и поправить.</div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">1</span>Ссылка на Drom</h3>
+        <div class="f">
+          <input id="drom" placeholder="https://auto.drom.ru/irkutsk/..." autocomplete="off">
+          <div class="hint" id="dromHint">Вставьте ссылку на объявление — она превратится в QR-код.</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">2</span>Автомобиль</h3>
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="f"><label>Марка</label><input data-k="brand" placeholder="BYD"></div>
+          <div class="f"><label>Модель</label><input data-k="model" placeholder="Qin Plus"></div>
+        </div>
+        <div class="f"><label>Комплектация / версия</label><input data-k="trim" placeholder="DM-i 120 км, Flagship"></div>
+        <div class="grid2">
+          <div class="f"><label>Статус</label><select data-k="status">
+            <option value="">— не показывать —</option><option>В наличии</option><option>В пути</option><option>Под заказ</option><option>Новое поступление</option><option>Забронирован</option></select></div>
+          <div class="f"><label>Откуда привезён</label><select data-k="origin">
+            <option value="">— не показывать —</option><option>Из Китая</option><option>Из Японии</option><option>Из Кореи</option><option>Из ОАЭ</option><option>Из Европы</option></select></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">3</span>Цена</h3>
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="f"><label>Цена, ₽</label><input data-k="price" inputmode="numeric" placeholder="2 150 000"></div>
+          <div class="f"><label>Старая цена, ₽ (если есть)</label><input data-k="oldPrice" inputmode="numeric" placeholder="необязательно"></div>
+        </div>
+        <div class="f"><label>Строка под ценой</label><input data-k="priceNote" placeholder="Например: Кредит · Trade-in · Цена с учётом растаможки"></div>
+        <div class="hint">Пустая цена — на ценнике будет «Цена по запросу». Если указать старую цену, выгода посчитается сама.</div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">4</span>Главные цифры</h3>
+        <div class="grid3" style="margin-bottom:10px">
+          <div class="f"><label>Год</label><input data-k="year" inputmode="numeric" placeholder="2022"></div>
+          <div class="f"><label>Пробег, км</label><input data-k="mileage" inputmode="numeric" placeholder="32 300"></div>
+          <div class="f"><label>Мощность, л.с.</label><input data-k="power" inputmode="numeric" placeholder="110"></div>
+        </div>
+        <div class="grid2">
+          <div class="f"><label>Двигатель (крупно)</label><input data-k="engine" placeholder="1.5 л"></div>
+          <div class="f"><label>Тип топлива (мелко)</label><input data-k="fuel" placeholder="бензин, гибрид"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">5</span>Характеристики</h3>
+        <div class="rows" id="specRows"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn sm" id="addSpec">+ Добавить строку</button>
+        </div>
+        <div class="hint">Строки без значения на ценник не попадают. Оптимально 6–9 строк.</div>
+        <div class="hint err" id="fitWarn" style="display:none">⚠ Не всё помещается на лист — уберите пару строк или сократите пункты в блоке 6.</div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">6</span>Чем цепляет эта машина</h3>
+        <div class="f">
+          <textarea data-k="feats" placeholder="Каждый пункт — с новой строки"></textarea>
+          <div class="hint">3–6 коротких пунктов: то, ради чего покупатель позвонит. Пусто — колонка исчезнет, характеристики займут всю ширину.</div>
+        </div>
+        <div class="f"><label>Короткий текст под списком (необязательно)</label><textarea data-k="featText" style="min-height:60px" placeholder="Например: Машина приехала под заказ клиента, но он передумал — отдаём по цене привоза."></textarea></div>
+      </div>
+
+      <div class="sec">
+        <h3><span class="n">7</span>Контакты и каналы</h3>
+        <div class="hint" style="margin:-4px 0 10px">Эти поля запоминаются и подставляются в каждый новый ценник.</div>
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="f"><label>Телефон</label><input data-k="phone" data-keep placeholder="+7 900 000-00-00"></div>
+          <div class="f"><label>Подпись под телефоном</label><input data-k="who" data-keep placeholder="Звоните и пишите"></div>
+        </div>
+        <div class="f"><label>Текст справа в подвале</label><input data-k="footText" data-keep></div>
+        <div class="f"><label>Адрес / город</label><input data-k="address" data-keep placeholder="г. Иркутск, ул. ..."></div>
+        <details class="more">
+          <summary>Ссылки Telegram и MAX, сайт</summary>
+          <div class="f"><label>Telegram</label><input data-k="tg" data-keep></div>
+          <div class="f"><label>MAX</label><input data-k="max" data-keep></div>
+          <div class="f"><label>Сайт</label><input data-k="site" data-keep></div>
+          <div class="grid2">
+            <div class="f"><label>Подпись Telegram</label><input data-k="tgCap" data-keep></div>
+            <div class="f"><label>Подпись MAX</label><input data-k="maxCap" data-keep></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="sec">
+        <h3>Резервная копия</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm" id="expBtn">Скачать все ценники (файл)</button>
+          <button class="btn sm" id="impBtn">Загрузить из файла</button>
+          <input type="file" id="impFile" accept=".json,application/json" hidden>
+        </div>
+        <div class="hint">Список ценников хранится в этом браузере. Файл копии пригодится для другого компьютера.</div>
+      </div>
+    </div>
+    <div class="ed-actions">
+      <button class="btn primary" id="pdfBtn">⬇ Сохранить PDF</button>
+      <button class="btn dark" id="printBtn">🖨 Печать</button>
+      <div class="wide">
+        <button class="btn sm" id="newBtn">Новый ценник</button>
+        <button class="btn sm" id="saveBtn">Запомнить в списке</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="preview" id="preview">
+    <div class="tip">Предпросмотр · лист A4</div>
+    <div class="stage" id="stage">
+      <div class="sheet" id="sheet">
+        <div class="sh-head">
+          <svg class="deco" viewBox="0 0 210 28" preserveAspectRatio="none" aria-hidden="true">
+            <g fill="none" stroke="#A5574C" stroke-width=".35">
+              <path d="M-2 22.6 H98 a12 12 0 0 0 12 -12 V-2"/>
+              <path d="M-2 23.8 H98 a13.2 13.2 0 0 0 13.2 -13.2 V-2"/>
+              <path d="M-2 25 H98 a14.4 14.4 0 0 0 14.4 -14.4 V-2"/>
+              <path d="M-2 26.2 H98 a15.6 15.6 0 0 0 15.6 -15.6 V-2"/>
+            </g>
+          </svg>
+          <svg class="logo" viewBox="0 0 470 100" aria-label="АвтоБрокер"><rect x="0" y="0" width="100" height="100" rx="20" fill="#C8102E"/><path fill="#fff" fill-rule="evenodd" d="M40 15h20l21 60H66l-4.2-12H38.2L34 75H19zM43 49h14l-7-21z"/><rect x="22" y="82" width="56" height="6" rx="3" fill="#fff"/><text x="120" y="60" font-family="Wix Madefor Text, Manrope, Segoe UI, Arial, sans-serif" font-weight="800" font-size="46" letter-spacing="1">АВТОБРОКЕР</text><text x="122" y="90" font-family="Wix Madefor Text, Manrope, Segoe UI, Arial, sans-serif" font-weight="600" font-size="17" letter-spacing="2.4" opacity=".7">ПОДБОР И ПРИВОЗ АВТО</text></svg>
+          <div class="slog"><b>NEW WORLD, NEW CARS</b><span id="sSite"></span></div>
+        </div>
+
+        <div class="sh-title">
+          <div class="chips" id="sChips"></div>
+          <div class="brand" id="sBrand"></div>
+          <div class="model" id="sModel"></div>
+          <div class="sub" id="sSub"></div>
+        </div>
+
+        <div class="sh-price">
+          <svg class="deco" viewBox="0 0 210 40" preserveAspectRatio="none" aria-hidden="true">
+            <g fill="none" stroke="#fff" stroke-opacity=".28" stroke-width=".3">
+              <path d="M-2 33 C60 33 110 32 150 22 S200 2 214 -2"/>
+              <path d="M-2 34.4 C60 34.4 112 33.4 152 23.2 S202 3.4 214 0"/>
+              <path d="M-2 35.8 C60 35.8 114 34.8 154 24.4 S204 4.8 214 2"/>
+              <path d="M-2 37.2 C60 37.2 116 36.2 156 25.6 S206 6.2 214 4"/>
+            </g>
+          </svg>
+          <div class="pl">
+            <div class="lbl" id="sPLbl">Цена</div>
+            <div class="val" id="sPrice"></div>
+            <div class="pnote" id="sPNote"></div>
+          </div>
+          <div class="pr" id="sOld"></div>
+        </div>
+
+        <div class="sh-figs" id="sFigs"></div>
+
+        <div class="sh-main" id="sMain">
+          <div class="specs"><div class="h">Характеристики</div><div id="sSpecs"></div></div>
+          <div class="feats" id="sFeatsWrap"><div class="h">Почему стоит взять</div><div id="sFeats"></div><div class="ftxt" id="sFText"></div></div>
+        </div>
+
+        <div class="sh-qr">
+          <div class="qr-lead">
+            <svg class="cam" viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+            <b>Наведите камеру телефона</b>
+            <span>Фото и все детали — в объявлении, новинки — в каналах</span>
+          </div>
+          <div class="qrs">
+            <div class="qc main"><div class="qbox" id="qDrom"></div><div class="qtag">Drom</div><div class="qcap">Это объявление<br>фото и подробности</div></div>
+            <div class="qc"><div class="qbox" id="qTg"></div><div class="qtag">Telegram</div><div class="qcap" id="cTg"></div></div>
+            <div class="qc"><div class="qbox" id="qMax"></div><div class="qtag">MAX</div><div class="qcap" id="cMax"></div></div>
+          </div>
+        </div>
+
+        <div class="sh-foot">
+          <svg class="deco" viewBox="0 0 210 21" preserveAspectRatio="none" aria-hidden="true">
+            <g fill="none" stroke="#A5574C" stroke-width=".35">
+              <path d="M-2 2.4 H194 a8.4 8.4 0 0 1 8.4 8.4 V23"/>
+              <path d="M-2 3.6 H194 a7.2 7.2 0 0 1 7.2 7.2 V23"/>
+              <path d="M-2 4.8 H194 a6 6 0 0 1 6 6 V23"/>
+            </g>
+          </svg>
+          <div class="fl"><div class="ph" id="sPhone"></div><div class="who" id="sWho"></div></div>
+          <div class="fr" id="sFoot"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* Minimal QR encoder: byte mode, EC level M, versions 1-15 */
+const QR = (() => {
+  const RS = {1:[1,26,16],2:[1,44,28],3:[1,70,44],4:[2,50,32],5:[2,67,43],6:[4,43,27],7:[4,49,31],
+    8:[2,60,38,2,61,39],9:[3,58,36,2,59,37],10:[4,69,43,1,70,44],11:[1,80,50,4,81,51],
+    12:[6,58,36,2,59,37],13:[8,59,37,1,60,38],14:[4,64,40,5,65,41],15:[5,65,41,5,66,42]};
+  const ALIGN = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],
+    10:[6,28,50],11:[6,30,54],12:[6,32,58],13:[6,34,62],14:[6,26,46,66],15:[6,26,48,70]};
+  const EXP = new Array(512), LOG = new Array(256);
+  (() => { let x = 1; for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 256) x ^= 0x11d; }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  const mul = (a, b) => (a && b) ? EXP[LOG[a] + LOG[b]] : 0;
+  function genPoly(n) { let p = [1]; for (let i = 0; i < n; i++) { const q = new Array(p.length + 1).fill(0);
+      for (let j = 0; j < p.length; j++) { q[j] ^= p[j]; q[j + 1] ^= mul(p[j], EXP[i]); } p = q; } return p; }
+  function rsEC(data, n) { const g = genPoly(n), r = data.concat(new Array(n).fill(0));
+    for (let i = 0; i < data.length; i++) { const c = r[i]; if (c) for (let j = 0; j < g.length; j++) r[i + j] ^= mul(g[j], c); }
+    return r.slice(data.length); }
+  function blocks(v) { const t = RS[v], out = []; for (let i = 0; i < t.length; i += 3) for (let k = 0; k < t[i]; k++) out.push([t[i + 1], t[i + 2]]); return out; }
+  function bch(val, poly, bits) { let v = val << bits; const deg = (x) => 31 - Math.clz32(x);
+    while (deg(v) >= deg(poly)) v ^= poly << (deg(v) - deg(poly)); return (val << bits) | v; }
+
+  function encode(text) {
+    const bytes = Array.from(new TextEncoder().encode(text));
+    let v = 1;
+    for (; v <= 15; v++) { const cap = blocks(v).reduce((s, b) => s + b[1], 0); const cc = v < 10 ? 8 : 16;
+      if (4 + cc + bytes.length * 8 <= cap * 8) break; }
+    if (v > 15) throw new Error('Ссылка слишком длинная для QR');
+    const bl = blocks(v), dataCap = bl.reduce((s, b) => s + b[1], 0);
+    const bits = []; const put = (n, len) => { for (let i = len - 1; i >= 0; i--) bits.push((n >> i) & 1); };
+    put(4, 4); put(bytes.length, v < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+    for (let i = 0; i < 4 && bits.length < dataCap * 8; i++) bits.push(0);
+    while (bits.length % 8) bits.push(0);
+    const cw = []; for (let i = 0; i < bits.length; i += 8) cw.push(parseInt(bits.slice(i, i + 8).join(''), 2));
+    for (let p = 0; cw.length < dataCap; p++) cw.push(p % 2 ? 0x11 : 0xEC);
+    const dB = [], eB = []; let off = 0;
+    bl.forEach(([tot, dc]) => { const d = cw.slice(off, off + dc); off += dc; dB.push(d); eB.push(rsEC(d, tot - dc)); });
+    const final = []; const maxD = Math.max(...dB.map(b => b.length));
+    for (let i = 0; i < maxD; i++) dB.forEach(b => { if (i < b.length) final.push(b[i]); });
+    for (let i = 0; i < eB[0].length; i++) eB.forEach(b => final.push(b[i]));
+
+    const N = 17 + 4 * v;
+    const M = Array.from({ length: N }, () => new Array(N).fill(null));
+    const F = Array.from({ length: N }, () => new Array(N).fill(false));
+    const set = (r, c, val) => { M[r][c] = val; F[r][c] = true; };
+    const finder = (r0, c0) => { for (let r = -1; r <= 7; r++) for (let c = -1; c <= 7; c++) {
+      const rr = r0 + r, cc = c0 + c; if (rr < 0 || cc < 0 || rr >= N || cc >= N) continue;
+      const on = r >= 0 && r <= 6 && c >= 0 && c <= 6 && (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
+      set(rr, cc, on); } };
+    finder(0, 0); finder(0, N - 7); finder(N - 7, 0);
+    const al = ALIGN[v];
+    al.forEach(r => al.forEach(c => { if (F[r][c]) return;
+      for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) set(r + y, c + x, Math.max(Math.abs(x), Math.abs(y)) !== 1); }));
+    for (let i = 8; i < N - 8; i++) { if (!F[6][i]) set(6, i, i % 2 === 0); if (!F[i][6]) set(i, 6, i % 2 === 0); }
+    // reserve format areas
+    for (let i = 0; i < 9; i++) { if (!F[8][i]) set(8, i, false); if (!F[i][8]) set(i, 8, false); }
+    for (let i = 0; i < 8; i++) { set(8, N - 1 - i, false); set(N - 1 - i, 8, false); }
+    set(N - 8, 8, true); // dark module
+    if (v >= 7) { const vi = bch(v, 0x1f25, 12);
+      for (let i = 0; i < 18; i++) { const b = ((vi >> i) & 1) === 1; const a = Math.floor(i / 3), c = i % 3 + N - 11; set(a, c, b); set(c, a, b); } }
+    // data placement
+    const dbits = []; final.forEach(b => { for (let i = 7; i >= 0; i--) dbits.push((b >> i) & 1); });
+    let bi = 0, up = true;
+    for (let col = N - 1; col > 0; col -= 2) { if (col === 6) col--;
+      for (let k = 0; k < N; k++) { const r = up ? N - 1 - k : k;
+        for (let j = 0; j < 2; j++) { const c = col - j; if (F[r][c]) continue; M[r][c] = bi < dbits.length ? dbits[bi++] === 1 : false; } }
+      up = !up; }
+    const masks = [(r, c) => (r + c) % 2 === 0, (r) => r % 2 === 0, (r, c) => c % 3 === 0, (r, c) => (r + c) % 3 === 0,
+      (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0, (r, c) => (r * c) % 2 + (r * c) % 3 === 0,
+      (r, c) => ((r * c) % 2 + (r * c) % 3) % 2 === 0, (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0];
+    function build(m) {
+      const A = M.map((row, r) => row.map((val, c) => F[r][c] ? val : (val !== masks[m](r, c))));
+      const fi = bch((0 << 3) | m, 0x537, 10) ^ 0x5412; // EC level M = 00
+      for (let i = 0; i < 15; i++) { const b = ((fi >> i) & 1) === 1;
+        if (i < 6) A[i][8] = b; else if (i < 8) A[i + 1][8] = b; else A[N - 15 + i][8] = b;
+        if (i < 8) A[8][N - 1 - i] = b; else if (i < 9) A[8][7] = b; else A[8][15 - i - 1] = b; }
+      return A; }
+    function penalty(A) { let p = 0;
+      for (let r = 0; r < N; r++) for (const line of [A[r], A.map(x => x[r])]) {
+        let run = 1; for (let c = 1; c < N; c++) { if (line[c] === line[c - 1]) { run++; if (run === 5) p += 3; else if (run > 5) p++; } else run = 1; }
+        for (let c = 0; c + 10 < N; c++) { const s = line.slice(c, c + 11).map(x => x ? 1 : 0).join('');
+          if (s === '10111010000' || s === '00001011101') p += 40; } }
+      for (let r = 0; r < N - 1; r++) for (let c = 0; c < N - 1; c++) { const x = A[r][c];
+        if (x === A[r + 1][c] && x === A[r][c + 1] && x === A[r + 1][c + 1]) p += 3; }
+      const dark = A.flat().filter(Boolean).length; p += Math.floor(Math.abs(dark * 100 / (N * N) - 50) / 5) * 10; return p; }
+    let best = null, bp = Infinity;
+    for (let m = 0; m < 8; m++) { const A = build(m), p = penalty(A); if (p < bp) { bp = p; best = A; } }
+    return best;
+  }
+  function svgPath(A) { let d = ''; A.forEach((row, r) => row.forEach((on, c) => { if (on) d += `M${c} ${r}h1v1h-1z`; })); return d; }
+  return { encode, svgPath };
+})();
+if (typeof module !== 'undefined') module.exports = QR;
+
+</script>
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS_CUR = 'chiauto_cenik_current_v1', LS_KEEP = 'chiauto_cenik_keep_v1', LS_LIB = 'chiauto_cenik_lib_v1';
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+const KEEP_DEFAULT = {
+  phone: '', who: 'Звоните и пишите',
+  footText: 'Подбор и привоз автомобилей из Китая и Японии', address: '',
+  tg: 'https://t.me/AvtoBroker38', max: '',
+  site: 'автоброкер38.рф', tgCap: 'Все авто в наличии<br>и новые поступления', maxCap: 'Пишите нам<br>в MAX'
+};
+const DEFAULT_SPECS = () => [['КПП',''],['Привод',''],['Кузов',''],['Цвет',''],['Руль','левый'],['Владельцы',''],['Пробег по РФ','']];
+const EXAMPLE = {
+  drom: 'https://auto.drom.ru/irkutsk/byd/qin_plus/637808634.html',
+  brand: 'BYD', model: 'Qin Plus', trim: 'DM-i, гибрид', status: 'В наличии', origin: 'Из Китая',
+  price: '', oldPrice: '', priceNote: '',
+  year: '2022', mileage: '32300', power: '110', engine: '1.5 л', fuel: 'бензин, гибрид',
+  specs: [['КПП','вариатор'],['Привод','передний'],['Кузов','седан'],['Цвет','белый'],['Руль','левый'],['Пробег по РФ','без пробега']],
+  feats: 'Без пробега по России\nЭкономичный гибрид DM-i\nСвежий привоз, полностью проверен\nПомогаем с оформлением и постановкой на учёт',
+  featText: ''
+};
+const CAR_KEYS = ['drom','brand','model','trim','status','origin','price','oldPrice','priceNote','year','mileage','power','engine','fuel','feats','featText'];
+
+let state = Object.assign({}, EXAMPLE, KEEP_DEFAULT, ls.get(LS_KEEP, {}), ls.get(LS_CUR, {}));
+if (!Array.isArray(state.specs)) state.specs = DEFAULT_SPECS();
+
+/* ---------- formatting ---------- */
+const digits = (s) => String(s || '').replace(/[^\d]/g, '');
+const groupNum = (s) => { const d = digits(s); return d ? d.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''; };
+const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+/* ---------- QR ---------- */
+function qrSvg(text) {
+  const A = QR.encode(text), n = A.length, q = 2;
+  return `<svg viewBox="${-q} ${-q} ${n + 2 * q} ${n + 2 * q}" shape-rendering="crispEdges"><rect x="${-q}" y="${-q}" width="${n + 2 * q}" height="${n + 2 * q}" fill="#fff"/><path fill="#111" d="${QR.svgPath(A)}"/></svg>`;
+}
+function setQR(el, url, emptyText) {
+  url = (url || '').trim();
+  if (!url) { el.innerHTML = `<div class="qempty">${emptyText}</div>`; return false; }
+  try { el.innerHTML = qrSvg(url); return true; } catch (e) { el.innerHTML = `<div class="qempty">ссылка<br>слишком длинная</div>`; return false; }
+}
+
+/* ---------- Drom link helpers ---------- */
+function parseDrom(url) {
+  try { const u = new URL(url.trim()); if (!/drom\.ru$/.test(u.hostname)) return null;
+    const p = u.pathname.split('/').filter(Boolean);
+    const i = p.findIndex(x => /^\d+\.html$/.test(x));
+    if (i >= 2) return { brand: p[i - 2], model: p[i - 1] };
+    return {};
+  } catch (e) { return null; }
+}
+const prettyPart = (s) => s.split(/[_-]/).map(w => w.length <= 3 && /\d/.test(w) ? w.toUpperCase() : cap(w)).join(' ');
+const BRAND_FIX = { bmw:'BMW', byd:'BYD', gac:'GAC', faw:'FAW', jac:'JAC', mg:'MG', kia:'KIA', jetour:'Jetour', lixiang:'Li Auto', li_auto:'Li Auto', 'mercedes-benz':'Mercedes-Benz', mercedes:'Mercedes-Benz', vw:'Volkswagen', zeekr:'Zeekr', exeed:'EXEED', haval:'Haval', geely:'Geely', chery:'Chery', changan:'Changan', tank:'Tank', voyah:'Voyah', hongqi:'Hongqi', lexus:'Lexus', toyota:'Toyota', honda:'Honda', nissan:'Nissan', mazda:'Mazda', subaru:'Subaru', mitsubishi:'Mitsubishi', suzuki:'Suzuki', hyundai:'Hyundai', genesis:'Genesis' };
+
+/* ---------- render ---------- */
+function render() {
+  const s = state;
+  $('#sSite').textContent = s.site || '';
+  const chips = [];
+  if (s.status) chips.push(`<span class="chip fill">${esc(s.status)}</span>`);
+  if (s.origin) chips.push(`<span class="chip">${esc(s.origin)}</span>`);
+  $('#sChips').innerHTML = chips.join('');
+  $('#sBrand').textContent = s.brand || 'Марка';
+  $('#sModel').textContent = s.model || 'Модель';
+  const sub = [s.trim, s.year ? s.year + ' год' : ''].filter(Boolean).join('  ·  ');
+  $('#sSub').textContent = sub;
+
+  const price = groupNum(s.price), old = groupNum(s.oldPrice);
+  const pv = $('#sPrice');
+  if (price) { pv.className = 'val'; pv.innerHTML = `${price}<small>₽</small>`; }
+  else { pv.className = 'val req'; pv.textContent = 'Цена по запросу'; }
+  $('#sPLbl').style.display = price ? '' : 'none';
+  $('#sPNote').textContent = s.priceNote || '';
+  const diff = (+digits(s.oldPrice)) - (+digits(s.price));
+  $('#sOld').innerHTML = (old && price && diff > 0)
+    ? `<div class="old">${old} ₽</div><div class="save">Выгода ${groupNum(String(diff))} ₽</div>` : '';
+
+  const figs = [];
+  if (s.year) figs.push(['Год выпуска', esc(s.year), '']);
+  if (digits(s.mileage)) figs.push(['Пробег', `${groupNum(s.mileage)}<small> км</small>`, '']);
+  else if (s.mileage) figs.push(['Пробег', esc(s.mileage), '']);
+  if (s.engine || s.fuel) figs.push(['Двигатель', esc(s.engine || cap(s.fuel)), s.engine ? esc(s.fuel || '') : '']);
+  if (s.power) figs.push(['Мощность', `${esc(digits(s.power) || s.power)}<small> л.с.</small>`, '']);
+  $('#sFigs').style.gridTemplateColumns = `repeat(${Math.max(figs.length, 1)},1fr)`;
+  $('#sFigs').style.display = figs.length ? '' : 'none';
+  $('#sFigs').innerHTML = figs.map(([k, v, d]) => `<div class="fig"><div class="k">${k}</div><div class="v">${v}</div>${d ? `<div class="d">${d}</div>` : ''}</div>`).join('');
+
+  const specs = (s.specs || []).filter(r => r[0] && r[1]);
+  $('#sSpecs').innerHTML = specs.map(r => `<div class="sp"><span class="l">${esc(r[0])}</span><span class="r">${esc(r[1])}</span></div>`).join('');
+  const feats = (s.feats || '').split('\n').map(x => x.trim()).filter(Boolean);
+  const check = '<i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>';
+  $('#sFeats').innerHTML = feats.map(f => `<div class="ft">${check}<span>${esc(f)}</span></div>`).join('');
+  $('#sFText').textContent = s.featText || '';
+  const hasFeat = feats.length || (s.featText || '').trim();
+  $('#sFeatsWrap').style.display = hasFeat ? '' : 'none';
+  $('#sMain').classList.toggle('nofeat', !hasFeat);
+  $('.specs').style.display = specs.length ? '' : 'none';
+
+  setQR($('#qDrom'), s.drom, 'вставьте<br>ссылку Drom');
+  setQR($('#qTg'), s.tg, 'нет ссылки');
+  setQR($('#qMax'), s.max, 'нет ссылки');
+  $('#cTg').innerHTML = s.tgCap || '';
+  $('#cMax').innerHTML = s.maxCap || '';
+
+  $('#sPhone').textContent = s.phone || s.site || '';
+  $('#sWho').textContent = s.phone ? (s.who || '') : (s.who || '');
+  $('#sFoot').innerHTML = [s.footText ? `<b>${esc(s.footText)}</b>` : '', esc(s.address || ''), s.phone ? esc(s.site || '') : ''].filter(Boolean).join('<br>');
+
+  fit();
+  dromHint();
+}
+
+/* auto-fit long texts */
+function fitText(el, maxPt, minPt, box) {
+  let pt = maxPt; el.style.fontSize = pt + 'pt';
+  box = box || el.clientWidth;
+  while (el.scrollWidth > box + 0.5 && pt > minPt) { pt -= 1; el.style.fontSize = pt + 'pt'; }
+}
+function fit() {
+  const t = $('.sh-title');
+  fitText($('#sModel'), 60, 26);
+  const pv = $('#sPrice'), band = $('.sh-price'), cs = getComputedStyle(band);
+  const avail = band.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - $('#sOld').offsetWidth - ($('#sOld').offsetWidth ? 23 : 0);
+  fitText(pv, pv.classList.contains('req') ? 34 : 50, 24, avail);
+  document.querySelectorAll('.fig .v').forEach(v => { let pt = 17; v.style.fontSize = pt + 'pt';
+    while (v.scrollWidth > v.clientWidth + 1 && pt > 10) { pt -= .5; v.style.fontSize = pt + 'pt'; } });
+  const m = $('#sMain'); let fs = 14; m.style.setProperty('--fs', fs + 'pt');
+  const over = () => [...m.children].some(c => c.style.display !== 'none' && c.scrollHeight > m.clientHeight - 10);
+  while (over() && fs > 8) { fs -= .25; m.style.setProperty('--fs', fs + 'pt'); }
+  const w = $('#fitWarn'); if (w) w.style.display = over() ? '' : 'none';
+}
+
+/* ---------- preview scaling ---------- */
+function scalePreview() {
+  const pv = $('#preview'), st = $('#stage');
+  const k = Math.min((pv.clientWidth - 60) / st.offsetWidth, (pv.clientHeight - 70) / st.offsetHeight);
+  st.style.transform = `scale(${Math.max(.2, k)})`;
+}
+window.addEventListener('resize', scalePreview);
+
+/* ---------- editor bindings ---------- */
+function persist() {
+  const keep = {}; Object.keys(KEEP_DEFAULT).forEach(k => keep[k] = state[k]);
+  ls.set(LS_KEEP, keep);
+  const cur = { specs: state.specs }; CAR_KEYS.forEach(k => cur[k] = state[k]);
+  ls.set(LS_CUR, cur);
+}
+let rt; const changed = () => { clearTimeout(rt); rt = setTimeout(() => { render(); persist(); }, 60); };
+function fillForm() {
+  document.querySelectorAll('[data-k]').forEach(el => { el.value = state[el.dataset.k] ?? ''; });
+  $('#drom').value = state.drom || '';
+  drawSpecRows();
+}
+document.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', () => { state[el.dataset.k] = el.value; changed(); }));
+$('#drom').addEventListener('input', (e) => { state.drom = e.target.value.trim(); autofillFromDrom(); changed(); });
+
+function autofillFromDrom() {
+  const p = parseDrom(state.drom || ''); if (!p || !p.brand) return;
+  const b = BRAND_FIX[p.brand] || prettyPart(p.brand), m = prettyPart(p.model);
+  const bEl = document.querySelector('[data-k=brand]'), mEl = document.querySelector('[data-k=model]');
+  if (!state.brand) { state.brand = b; bEl.value = b; }
+  if (!state.model) { state.model = m; mEl.value = m; }
+}
+function dromHint() {
+  const h = $('#dromHint'), u = (state.drom || '').trim();
+  if (!u) { h.className = 'hint'; h.textContent = 'Вставьте ссылку на объявление — она превратится в QR-код.'; return; }
+  if (!/^https?:\/\//i.test(u)) { h.className = 'hint err'; h.textContent = 'Ссылка должна начинаться с https:// — скопируйте её из адресной строки.'; return; }
+  const p = parseDrom(u);
+  h.className = p ? 'hint ok' : 'hint';
+  h.textContent = p ? '✓ QR-код готов. Проверьте камерой телефона прямо с экрана.' : 'Это не Drom, но QR-код всё равно создан.';
+}
+
+function drawSpecRows() {
+  const box = $('#specRows'); box.innerHTML = '';
+  state.specs.forEach((r, i) => {
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `<input value="${esc(r[0])}" placeholder="Параметр"><input value="${esc(r[1])}" placeholder="Значение">
+      <button class="ib" title="Выше">↑</button><button class="ib" title="Ниже">↓</button><button class="ib" title="Удалить">✕</button>`;
+    const [a, b] = row.querySelectorAll('input'), [up, dn, del] = row.querySelectorAll('button');
+    a.oninput = () => { state.specs[i][0] = a.value; changed(); };
+    b.oninput = () => { state.specs[i][1] = b.value; changed(); };
+    up.onclick = () => { if (i > 0) { [state.specs[i - 1], state.specs[i]] = [state.specs[i], state.specs[i - 1]]; drawSpecRows(); changed(); } };
+    dn.onclick = () => { if (i < state.specs.length - 1) { [state.specs[i + 1], state.specs[i]] = [state.specs[i], state.specs[i + 1]]; drawSpecRows(); changed(); } };
+    del.onclick = () => { state.specs.splice(i, 1); drawSpecRows(); changed(); };
+    box.appendChild(row);
+  });
+}
+$('#addSpec').onclick = () => { state.specs.push(['', '']); drawSpecRows(); const ins = $('#specRows').querySelectorAll('.row'); ins[ins.length - 1].querySelector('input').focus(); };
+
+/* ---------- library ---------- */
+const carTitle = (s) => [s.brand, s.model, s.year].filter(Boolean).join(' ') || 'Без названия';
+const carId = (s) => (s.drom && s.drom.trim()) || carTitle(s);
+function libList() { return ls.get(LS_LIB, []); }
+function saveToLib(silent) {
+  const lib = libList(), id = carId(state);
+  const item = { id, title: carTitle(state), date: new Date().toISOString(), specs: JSON.parse(JSON.stringify(state.specs)) };
+  CAR_KEYS.forEach(k => item[k] = state[k]);
+  const i = lib.findIndex(x => x.id === id); if (i >= 0) lib.splice(i, 1);
+  lib.unshift(item); ls.set(LS_LIB, lib.slice(0, 300)); drawLib(id);
+  if (!silent) toast('Ценник «' + item.title + '» сохранён в списке');
+}
+function drawLib(sel) {
+  const lib = libList(), s = $('#libSel');
+  s.innerHTML = `<option value="">${lib.length ? '— выберите ценник (' + lib.length + ') —' : '— пока пусто —'}</option>` +
+    lib.map((x, i) => `<option value="${i}" ${x.id === sel ? 'selected' : ''}>${esc(x.title)} · ${new Date(x.date).toLocaleDateString('ru-RU')}</option>`).join('');
+}
+$('#libSel').onchange = (e) => { const it = libList()[e.target.value]; if (!it) return;
+  CAR_KEYS.forEach(k => state[k] = it[k] ?? ''); state.specs = JSON.parse(JSON.stringify(it.specs || DEFAULT_SPECS()));
+  fillForm(); render(); persist(); toast('Открыт: ' + it.title); };
+$('#libDel').onclick = () => { const v = $('#libSel').value; if (v === '') return; const lib = libList(); const t = lib[v].title; lib.splice(v, 1); ls.set(LS_LIB, lib); drawLib(); toast('Удалён: ' + t); };
+$('#saveBtn').onclick = () => saveToLib(false);
+$('#newBtn').onclick = () => {
+  CAR_KEYS.forEach(k => state[k] = ''); state.specs = DEFAULT_SPECS();
+  state.status = 'В наличии';
+  fillForm(); render(); persist(); $('#drom').focus(); toast('Чистый ценник — начните со ссылки Drom');
+};
+$('#expBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify({ keep: ls.get(LS_KEEP, {}), lib: libList() }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ценники-автоброкер-копия.json'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$('#impBtn').onclick = () => $('#impFile').click();
+$('#impFile').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const d = JSON.parse(await f.text()); const lib = libList();
+    (d.lib || []).forEach(it => { if (!lib.some(x => x.id === it.id)) lib.push(it); });
+    ls.set(LS_LIB, lib); if (d.keep) { ls.set(LS_KEEP, d.keep); Object.assign(state, d.keep); fillForm(); render(); }
+    drawLib(); toast('Загружено ценников: ' + (d.lib || []).length);
+  } catch (err) { toast('Не получилось прочитать файл'); }
+  e.target.value = '';
+};
+
+/* ---------- PDF / print ---------- */
+function toast(t, ms) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms || 2600); }
+const fileName = () => ('Ценник ' + carTitle(state)).replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim() + '.pdf';
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function ensureLibs() {
+  if (!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+}
+function doPrint() { const t = document.title; document.title = fileName().replace(/\.pdf$/, ''); window.print(); setTimeout(() => document.title = t, 1000); }
+$('#printBtn').onclick = doPrint;
+$('#pdfBtn').onclick = async () => {
+  const btn = $('#pdfBtn'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'Готовлю PDF…';
+  try {
+    await ensureLibs();
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const sheet = $('#sheet');
+    const canvas = await html2canvas(sheet, {
+      scale: 3.5, backgroundColor: '#ffffff', useCORS: true, logging: false,
+      scrollX: 0, scrollY: 0, windowWidth: 1600, windowHeight: 2000,
+      onclone: (doc) => { const st = doc.getElementById('stage'); st.style.transform = 'none'; st.style.boxShadow = 'none';
+        const pv = doc.getElementById('preview'); pv.style.overflow = 'visible'; pv.style.alignItems = 'flex-start'; pv.style.justifyContent = 'flex-start'; }
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    pdf.setProperties({ title: carTitle(state), author: 'АвтоБрокер' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+    pdf.save(fileName());
+    saveToLib(true);
+    toast('PDF сохранён: ' + fileName());
+  } catch (e) {
+    console.error(e);
+    toast('Нет интернета для PDF-модуля — открываю печать. Выберите «Сохранить как PDF».', 5000);
+    saveToLib(true);
+    setTimeout(doPrint, 600);
+  } finally { btn.disabled = false; btn.textContent = label; }
+};
+
+/* ---------- init ---------- */
+fillForm(); drawLib(); render(); scalePreview();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { render(); scalePreview(); });
+setTimeout(() => { render(); scalePreview(); }, 800);
+})();
+</script>
+</body>
+</html>
